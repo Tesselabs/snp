@@ -1,0 +1,32 @@
+snp licence
+
+Copyright 2026 Tesselabs LLC. All rights reserved.
+
+This licence covers the snp release files that Tesselabs LLC publishes and
+signs: the snp binaries, install.sh, the skills and agents text built
+into snp, and the signature, manifest and checksum files published with them.
+
+1. Use. You may use the release files free of charge, for any purpose.
+   Use includes the copies of the skills and agents text that snp skills
+   install writes.
+
+2. Redistribution. You may copy and redistribute the release files only
+   unmodified and byte for byte as published, for example in mirrors or CI
+   caches. Keep this licence and the NOTICE file with them.
+
+3. No modification. You may not modify, adapt or make derivative works of
+   the release files, including the skills and agents text built into snp and
+   those copies.
+
+4. No warranty. The release files are provided "AS IS", without warranty of
+   any kind, express or implied, including the warranties of
+   merchantability, fitness for a particular purpose and non-infringement.
+   In no event is Tesselabs LLC liable for any claim, damages or other
+   liability arising from the release files or their use.
+
+5. No trademark grant. This licence gives no right to use the Sinopia or
+   snp names, logos or other marks of Tesselabs LLC.
+
+Third-party notices are in the NOTICE file.
+
+Questions: hello@tesselabs.com

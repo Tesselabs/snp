@@ -339,6 +339,33 @@ main() {
 main "$@"
 ```
 
+## Configure
+
+`snp` talks to a Sinopia server. Ask whoever runs it for three values: the server address, your
+org and a token. Put the first two in `~/.snp/config` and the token in `SNP_TOKEN`:
+
+```
+mkdir -p ~/.snp
+printf 'url=%s\norg=%s\n' https://snp.example.com your-org > ~/.snp/config
+export SNP_TOKEN=your-token
+snp mem list --limit 1
+```
+
+`SNP_URL` and `SNP_ORG` override the file. Keep the token out of shell history and out of files
+in a repository.
+
+### claude.ai cloud environments
+
+In the environment settings at claude.ai/code:
+
+- **Network access:** Custom, keep the defaults, and add the server's host.
+- **Network secret:** type Bearer for the server's host, header `Authorization`, prefix
+  `Bearer`, value: your token. The session's proxy adds it to each request, so `SNP_TOKEN`
+  stays unset and the token never enters the session.
+- **Setup script:** the two config lines above (`mkdir` and `printf`, with your values), then
+  `export SNP_URL=` with the server address, then the whole paste. The paste installs `snp`
+  and its skills into `~/.claude` and `~/.agents/skills` for every session.
+
 ## Key fingerprints
 
 - Recovery key: `1U/IvEldYgf2P1yKx2DlX+tuvR4fHsQmwqgV++Ynoyw=` (key id `7c39f0ce`)

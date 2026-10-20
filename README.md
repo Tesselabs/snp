@@ -345,7 +345,9 @@ main "$@"
 - Release key: `581BCDWgLCK2876qn/HCFHB1pI3AtvezbTdO+PzR1Ic=` (key id `cfaf473a`)
 
 Each is the base64 Ed25519 public key; the key id is the first 8 hex digits of its sha256.
-The paste checks every release against these keys.
+The release key is the genesis key the paste embeds. A `snp-keys` statement signed by the
+recovery key can rotate it: each release ships its statement, and the paste trusts only the
+release keys that statement allows.
 
 ## Licence
 

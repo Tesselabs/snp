@@ -339,13 +339,24 @@ main() {
 main "$@"
 ```
 
+Unless `~/.snp/no-auto-update` exists or `~/.snp` is not safe (run `snp skills install --user`
+to see why), the paste also adds a SessionStart hook to `~/.claude/settings.json`, so each new
+Claude Code session runs `snp update --auto` and picks up a newer `snp`. `snp` rewrites only `hooks.SessionStart` there; key order and spacing may change.
+Turn the hook off with `snp skills install --user --no-auto-update`
+and back on with `--auto-update`. Builds that are not released write no hook.
+To remove what `--user` installed, run `snp skills uninstall --user`: it deletes the `snp-*`
+skills and agents that install listed in `~/.snp/skills-installed` and the SessionStart hook, and
+leaves your other skills and agents alone. `settings.json` may be reformatted, and an empty
+`"hooks": {}` can remain. It also leaves `~/.snp/no-skills`: while that file is there, `snp update`
+still installs a newer `snp`, but no skills and no hook. `snp skills install --user` removes it.
+
 ## Configure
 
 `snp` talks to a Sinopia server. Ask whoever runs it for three values: the server address, your
 org and a token. Put the first two in `~/.snp/config` and the token in `SNP_TOKEN`:
 
 ```
-mkdir -p ~/.snp
+mkdir -p -m 700 ~/.snp
 printf 'url=%s\norg=%s\n' https://snp.example.com your-org > ~/.snp/config
 export SNP_TOKEN=your-token
 snp mem list --limit 1

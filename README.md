@@ -4,18 +4,83 @@
 
 ## Install
 
-The paste is a single `sh` block. It verifies the signed release before it installs anything:
-the key statement against the recovery key, the release manifest against a release key, and
-every file against the manifest. It needs `curl`, `openssl` 3.0 or later and `sha256sum`.
+On Linux (amd64 or arm64), with `curl`, `openssl` 3.0 or later and `sha256sum`:
 
-If you have a Sinopia server address, set `SNP_URL` to it first, so the paste installs the
-version that server expects. Then paste the whole block into a shell:
+```
+curl -fsSL https://github.com/Tesselabs/snp/releases/latest/download/snp-install.sh | sh
+```
+
+`snp-install.sh` verifies the signed release before it installs anything: the key statement
+against the recovery key, the release manifest against a release key, and every file against
+the manifest. It asks the Sinopia server which version to install, puts `snp` in
+`/usr/local/bin` when that is yours (or root's) and writable, else in `~/.local/bin`, and
+installs its skills into `~/.claude` and `~/.agents/skills`. Run it again to reinstall. A
+download cut short runs nothing: the script's last line starts the work. To read it before it
+runs, download it with `curl -fsSLO` and the same address, then run `sh snp-install.sh`.
+
+On a terminal it then asks for your org, unless `SNP_ORG` is set or `~/.snp/config` already
+names one, and saves the answer in `~/.snp/config`.
+
+Unless `~/.snp/no-auto-update` exists or `~/.snp` is not safe (run `snp skills install --user`
+to see why), the install also adds a SessionStart hook to `~/.claude/settings.json`, so each new
+Claude Code session runs `snp update --auto` and picks up a newer `snp`. `snp` rewrites only `hooks.SessionStart` there; key order and spacing may change.
+Turn the hook off with `snp skills install --user --no-auto-update`
+and back on with `--auto-update`. Builds that are not released write no hook.
+To remove what `--user` installed, run `snp skills uninstall --user`: it deletes the `snp-*`
+skills and agents that install listed in `~/.snp/skills-installed` and the SessionStart hook, and
+leaves your other skills and agents alone. `settings.json` may be reformatted, and an empty
+`"hooks": {}` can remain. It also leaves `~/.snp/no-skills`: while that file is there, `snp update`
+still installs a newer `snp`, but no skills and no hook. `snp skills install --user` removes it.
+
+## Configure
+
+`snp` talks to the Sinopia server at `https://snp.tesselabs.com`. It needs two values from you,
+your org and a token; ask whoever runs the server for both. The org goes in `~/.snp/config`
+(`snp-install.sh` asks for it), the token in `SNP_TOKEN`:
+
+```
+mkdir -p -m 700 ~/.snp
+printf 'org=%s\n' your-org >> ~/.snp/config
+export SNP_TOKEN=your-token
+snp mem list --limit 1
+```
+
+Keep the token out of shell history and out of files in a repository.
+
+`SNP_ORG` overrides the file's `org=`. To use another server, add `url=` with its address to
+`~/.snp/config`, or set `SNP_URL`, which also wins over the file and which `snp-install.sh`
+reads too.
+
+### claude.ai cloud environments
+
+In the environment settings at claude.ai/code:
+
+- **Network access:** Custom, keep the defaults, and add `snp.tesselabs.com`.
+- **Network secret:** type Bearer for `snp.tesselabs.com`, header `Authorization`, prefix
+  `Bearer`, value: your token. The session's proxy adds it to each request, so `SNP_TOKEN`
+  stays unset and the token never enters the session.
+- **Setup script:** the install, with your org first:
+
+  ```
+  mkdir -p -m 700 ~/.snp
+  printf 'org=%s\n' your-org > ~/.snp/config
+  curl -fsSL https://github.com/Tesselabs/snp/releases/latest/download/snp-install.sh | sh
+  ```
+
+  It installs `snp` and its skills into `~/.claude` and `~/.agents/skills` for every session.
+  For another server, add `export SNP_URL=` with its address before the install.
+
+To keep the installer in the setup script itself instead of downloading it, paste
+`snp-install.sh` whole in place of the `curl` line; it is the block below, byte for byte.
+
+<details>
+<summary>snp-install.sh</summary>
 
 ```sh
 #!/bin/sh
 # Sinopia snp installer paste. It checks signed release metadata before it
-# installs anything. Inputs: SNP_URL, optional SNP_RELEASE_BASE, SNP_ASSET_DIR
-# with SNP_TAG.
+# installs anything. Inputs, all optional: SNP_URL, SNP_RELEASE_BASE,
+# SNP_ASSET_DIR with SNP_TAG.
 set -u
 LC_ALL=C
 export LC_ALL
@@ -28,6 +93,11 @@ SNP_RECOVERY_KEY=1U/IvEldYgf2P1yKx2DlX+tuvR4fHsQmwqgV++Ynoyw=
 SNP_RELEASE_KEYS="581BCDWgLCK2876qn/HCFHB1pI3AtvezbTdO+PzR1Ic="
 
 base=${SNP_RELEASE_BASE:-https://github.com/Tesselabs/snp/releases}
+# The built-in server goes with the built-in release host only: a release from
+# SNP_RELEASE_BASE or SNP_ASSET_DIR asks no server unless SNP_URL names one.
+if [ -z "${SNP_RELEASE_BASE:-}" ] && [ -z "${SNP_ASSET_DIR:-}" ]; then
+	SNP_URL=${SNP_URL:-https://snp.tesselabs.com}
+fi
 keys_floor=$SNP_MIN_KEYS_SEQ
 version_floor=$SNP_MIN_VERSION
 tmp=
@@ -204,7 +274,7 @@ detect_arch() {
 	esac
 }
 
-# healthz reads /healthz (only when SNP_URL is set) and raises keys_floor and
+# healthz reads /healthz (only when there is an SNP_URL) and raises keys_floor and
 # version_floor to what it reports; latest_client becomes the target. A value
 # that is not a plain version or number is ignored and never printed, and any
 # failure leaves the inlined floors.
@@ -339,43 +409,7 @@ main() {
 main "$@"
 ```
 
-Unless `~/.snp/no-auto-update` exists or `~/.snp` is not safe (run `snp skills install --user`
-to see why), the paste also adds a SessionStart hook to `~/.claude/settings.json`, so each new
-Claude Code session runs `snp update --auto` and picks up a newer `snp`. `snp` rewrites only `hooks.SessionStart` there; key order and spacing may change.
-Turn the hook off with `snp skills install --user --no-auto-update`
-and back on with `--auto-update`. Builds that are not released write no hook.
-To remove what `--user` installed, run `snp skills uninstall --user`: it deletes the `snp-*`
-skills and agents that install listed in `~/.snp/skills-installed` and the SessionStart hook, and
-leaves your other skills and agents alone. `settings.json` may be reformatted, and an empty
-`"hooks": {}` can remain. It also leaves `~/.snp/no-skills`: while that file is there, `snp update`
-still installs a newer `snp`, but no skills and no hook. `snp skills install --user` removes it.
-
-## Configure
-
-`snp` talks to a Sinopia server. Ask whoever runs it for three values: the server address, your
-org and a token. Put the first two in `~/.snp/config` and the token in `SNP_TOKEN`:
-
-```
-mkdir -p -m 700 ~/.snp
-printf 'url=%s\norg=%s\n' https://snp.example.com your-org > ~/.snp/config
-export SNP_TOKEN=your-token
-snp mem list --limit 1
-```
-
-`SNP_URL` and `SNP_ORG` override the file. Keep the token out of shell history and out of files
-in a repository.
-
-### claude.ai cloud environments
-
-In the environment settings at claude.ai/code:
-
-- **Network access:** Custom, keep the defaults, and add the server's host.
-- **Network secret:** type Bearer for the server's host, header `Authorization`, prefix
-  `Bearer`, value: your token. The session's proxy adds it to each request, so `SNP_TOKEN`
-  stays unset and the token never enters the session.
-- **Setup script:** the two config lines above (`mkdir` and `printf`, with your values), then
-  `export SNP_URL=` with the server address, then the whole paste. The paste installs `snp`
-  and its skills into `~/.claude` and `~/.agents/skills` for every session.
+</details>
 
 ## Key fingerprints
 

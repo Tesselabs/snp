@@ -51,6 +51,10 @@ Keep the token out of shell history and out of files in a repository.
 `~/.snp/config`, or set `SNP_URL`, which also wins over the file and which `snp-install.sh`
 reads too.
 
+[docs/cli.md](docs/cli.md) lists every `snp` command, with the page `--help` prints.
+[docs/skills.md](docs/skills.md) lists the `snp-*` skills and where they are installed.
+[docs/security.md](docs/security.md) says what the signature does and does not protect against.
+
 ### claude.ai cloud environments
 
 In the environment settings at claude.ai/code:
@@ -59,19 +63,26 @@ In the environment settings at claude.ai/code:
 - **Network secret:** type Bearer for `snp.tesselabs.com`, header `Authorization`, prefix
   `Bearer`, value: your token. The session's proxy adds it to each request, so `SNP_TOKEN`
   stays unset and the token never enters the session.
-- **Setup script:** the install, with your org first:
+- **Setup script:** the block below, with your org.
 
-  ```
-  mkdir -p -m 700 ~/.snp
-  printf 'org=%s\n' your-org > ~/.snp/config
-  curl -fsSL https://github.com/Tesselabs/snp/releases/latest/download/snp-install.sh | sh
-  ```
+```bash
+mkdir -p -m 700 ~/.snp
+printf 'org=%s\n' your-org > ~/.snp/config
+curl -fsSL https://github.com/Tesselabs/snp/releases/latest/download/snp-install.sh -o ~/.snp/snp-install.sh && sh ~/.snp/snp-install.sh || echo "snp NOT installed: see the line above"
+```
 
-  It installs `snp` and its skills into `~/.claude` and `~/.agents/skills` for every session.
-  For another server, add `export SNP_URL=` with its address before the install.
+It installs `snp` and its skills into `~/.claude` and `~/.agents/skills` for every session. To
+use another server, use its host in the network access and the network secret, add
+`printf 'url=%s\n' https://your-host >> ~/.snp/config` after the org line, and put
+`SNP_URL=https://your-host` before `sh ~/.snp/snp-install.sh`.
+[docs/cloud.md](docs/cloud.md) has the whole setup, how a failed install shows and what repairs
+it.
 
-To keep the installer in the setup script itself instead of downloading it, paste
-`snp-install.sh` whole in place of the `curl` line; it is the block below, byte for byte.
+To keep the installer in the setup script itself instead of downloading it, replace the setup
+block's last line with `snp-install.sh` whole, inside `( ... ) || echo "snp NOT installed: see the line above"`, so that a failed install still lets setup finish. The file is below,
+byte for byte. For another server, use its host in the network access and the network secret,
+add `printf 'url=%s\n' https://your-host >> ~/.snp/config` after the org line, and put
+`SNP_URL=https://your-host` on its own line above the file.
 
 <details>
 <summary>snp-install.sh</summary>
@@ -414,12 +425,16 @@ main "$@"
 ## Key fingerprints
 
 - Recovery key: `1U/IvEldYgf2P1yKx2DlX+tuvR4fHsQmwqgV++Ynoyw=` (key id `7c39f0ce`)
-- Release key: `581BCDWgLCK2876qn/HCFHB1pI3AtvezbTdO+PzR1Ic=` (key id `cfaf473a`)
+- Release key: `+7fYsR5M1dgNVlOwaqhExzwaVcVpBABFUI++DAh7S6I=` (key id `40f57e32`)
+- Genesis key, revoked: `581BCDWgLCK2876qn/HCFHB1pI3AtvezbTdO+PzR1Ic=` (key id `cfaf473a`)
 
 Each is the base64 Ed25519 public key; the key id is the first 8 hex digits of its sha256.
-The release key is the genesis key the paste embeds. A `snp-keys` statement signed by the
-recovery key can rotate it: each release ships its statement, and the paste trusts only the
-release keys that statement allows.
+The paste embeds the recovery key and the genesis key. A `snp-keys` statement signed by the
+recovery key rotates the release key: each release ships its statement.
+The paste trusts that statement's release keys and the genesis key embedded in the script,
+unless that statement revokes it.
+The current statement trusts the release key above and revokes the genesis key.
+[docs/security.md](docs/security.md) says what an older statement does.
 
 ## Licence
 

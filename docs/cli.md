@@ -237,6 +237,15 @@ Errors and exit codes:
       those through snp work / snp state. For anything else, write under
       projects/<slug>/ instead, or ask your admin for a token with the mem
       scope. Nothing was written.
+  ILLEGAL (exit 8)
+      The write changes a milestone's Status line on a road: sinopia roadmap
+      (the first - **Status:** line of a ### M<n> block). Only pending to scoped
+      is written this way; move a milestone with snp state transition. Or the
+      write moves the roadmap's road off sinopia, changes a road line that is
+      neither road: vault nor road: sinopia to anything but road: sinopia, or
+      writes such a line where the document did not already carry it. A mem
+      write may set an invalid road line to road: sinopia; any other road change
+      goes through snpd admin put. Nothing was written.
   DIRTY_PROJECTION (exit 9)
       Your projection (~/.snp/projection/<org>) has local changes, so snp sent
       nothing. The message lists them. Copy out anything you want to keep,
@@ -396,6 +405,15 @@ Errors and exit codes:
       those through snp work / snp state. For anything else, write under
       projects/<slug>/ instead, or ask your admin for a token with the mem
       scope. Nothing was written.
+  ILLEGAL (exit 8)
+      The write changes a milestone's Status line on a road: sinopia roadmap
+      (the first - **Status:** line of a ### M<n> block). Only pending to scoped
+      is written this way; move a milestone with snp state transition. Or the
+      write moves the roadmap's road off sinopia, changes a road line that is
+      neither road: vault nor road: sinopia to anything but road: sinopia, or
+      writes such a line where the document did not already carry it. A mem
+      write may set an invalid road line to road: sinopia; any other road change
+      goes through snpd admin put. Nothing was written.
   DIRTY_PROJECTION (exit 9)
       Your projection (~/.snp/projection/<org>) has local changes, so snp sent
       nothing. The message lists them. Copy out anything you want to keep,
@@ -539,6 +557,15 @@ Errors and exit codes:
       those through snp work / snp state. For anything else, write under
       projects/<slug>/ instead, or ask your admin for a token with the mem
       scope. Nothing was written.
+  ILLEGAL (exit 8)
+      The write changes a milestone's Status line on a road: sinopia roadmap
+      (the first - **Status:** line of a ### M<n> block). Only pending to scoped
+      is written this way; move a milestone with snp state transition. Or the
+      write moves the roadmap's road off sinopia, changes a road line that is
+      neither road: vault nor road: sinopia to anything but road: sinopia, or
+      writes such a line where the document did not already carry it. A mem
+      write may set an invalid road line to road: sinopia; any other road change
+      goes through snpd admin put. Nothing was written.
   DIRTY_PROJECTION (exit 9)
       Your projection (~/.snp/projection/<org>) has local changes, so snp sent
       nothing. The message lists them. Copy out anything you want to keep,
@@ -918,6 +945,7 @@ Examples:
 ```text
 Usage:
   snp state transition <entity> --from <state> --to <state> [--reason text]
+      [--plan path]
 
 Description:
   Move one milestone to another state, as one commit. snpd rewrites the Status
@@ -937,6 +965,10 @@ Description:
   or canceled; snpd refuses the move and names each open issue. An issue that is
   missing or does not parse refuses it too. A milestone with no yaml, or a yaml
   that lists no issues, has none open.
+  With --plan, the move from scoped to planned also sets the plan: line of the
+  milestone's spec, in the same commit. snpd finds the spec from the - **Spec:**
+  link in the milestone's block, and only on a road: sinopia roadmap. snp sends
+  only the plan's path.
   When an answer is lost, snp resends the same request id on its own, and snpd
   replays the first result with replayed: true instead of writing twice. To move
   an issue, use snp work transition.
@@ -956,10 +988,15 @@ Arguments:
   must be 1 to 200 characters of letters, digits, spaces and . _ : @ / -. Any
   other reason is INVALID and nothing is written; unlike snp mem put, this verb
   does not drop it.
+  --plan <path>: the plan, docs/superpowers/plans/<name>.md, whose basename the
+  spec records as plan: "[[<name>]]". Only with --from scoped --to planned: with
+  any other edge snp exits 5 (INVALID) and sends nothing.
 
 Flags:
   --from <state>
       <state>: the state the milestone is in now (required)
+  --plan <path>
+      <path>: the plan the milestone's spec records (scoped → planned only)
   --reason <text>
       <text>: why, kept in the commit
   --to <state>
@@ -989,14 +1026,21 @@ Errors and exit codes:
       200-byte limit, because the ref and the two states are too long together;
       --reason is not 1 to 200 characters of letters, digits, spaces and . _ : @
       / -; there are two roadmaps for the iniciativa; the block has no Status
-      line or one that is not a milestone state; or the milestone's yaml or one
-      of its issues cannot be parsed. stderr names the document and says to
-      repair it with snpd admin put, which your admin runs. Nothing was written.
+      line or one that is not a milestone state; --plan with an edge other than
+      scoped to planned (nothing is sent); the plan is not
+      docs/superpowers/plans/<name>.md; the block has no - **Spec:** link, it
+      names no spec, or the spec has no leading frontmatter (stderr names the
+      document); or the milestone's yaml or one of its issues cannot be parsed.
+      stderr names the document and says to repair it with snpd admin put, which
+      your admin runs. Or snpd does not know --plan yet: stderr reads snpd does
+      not know --plan: deploy the snpd of this release first (runbook section
+      2); snp never retries the move without the plan. Nothing was written.
   ILLEGAL (exit 8)
       The milestone machine has no edge from --from to --to: snpd's JSON then
       carries allowed, the states that can follow, and the message lists them.
       Or, in the default schema, the milestone is moving to done and an issue it
-      lists is open: the message names each. Nothing was written.
+      lists is open: the message names each. With --plan, the roadmap is not on
+      road: sinopia: the message names its road. Nothing was written.
   CONFLICT (exit 3)
       The milestone is not in --from. Nothing was written. stderr reads <entity>
       is <current>, expected <from>; read the state again with snp state get and
@@ -1063,6 +1107,9 @@ Environment:
 Examples:
   # Plan a scoped milestone:
   snp state transition milestone:sinopia/demo/M1 --from scoped --to planned
+  # Plan it and record the plan on its spec, in one commit:
+  snp state transition milestone:sinopia/demo/M1 --from scoped --to planned \
+    --plan docs/superpowers/plans/2026-11-04-demo-M1-one.md
   # Close it, once its issues are done or canceled:
   snp state transition milestone:sinopia/demo/M1 --from in-progress \
     --to done --reason "all issues merged"

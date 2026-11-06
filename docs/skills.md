@@ -12,6 +12,7 @@
 | `snp-review` | Runs a panel of expert agents over a spec, and records its findings and decisions. |
 | `snp-board` | Turns a planned milestone's spec into `snp` issues in one commit, after you approve the list. |
 | `snp-build` | Builds one `snp` issue end to end: it claims the issue, plans and builds it with Superpowers on its own branch, opens a pull request, and marks the issue done once a person has merged it. It never merges. |
+| `snp-milestone` | Runs a roadmap milestone from its spec to a built board. It starts background agents for the spec, the review and the board, checks what each one wrote, puts the plan on its own branch, and moves the milestone only when you approve. It never merges. |
 | `snp-retro` | Grades a shipped milestone's predictions against what happened, and records the learnings. |
 
 The `snp-*` agents are the experts and helpers these skills call. They are Claude-only.

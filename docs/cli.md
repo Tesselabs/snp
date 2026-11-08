@@ -2224,6 +2224,92 @@ Examples:
   snp update --check --auto
 ```
 
+## snp usage report
+
+```text
+Usage:
+  snp usage report --since <RFC 3339 time> [--projects-dir <dir>]
+
+Description:
+  Count the tokens, human turns and AskUserQuestion prompts that Claude Code
+  recorded on this machine, grouped by the skill that was active when each was
+  recorded. Give --since, an RFC 3339 time such as 2026-11-07T00:00:00Z.
+  snp usage report reads the main transcripts, <dir>/<project>/<session>.jsonl,
+  and the subagent transcripts of each session,
+  <session>/subagents/agent-*.jsonl. Each usage recorded at or after --since
+  goes to the skill active when it was recorded; before any skill is active it
+  goes to (none).
+  snp usage report makes no network call, never calls snpd, reads no SNP_*
+  variable and writes nothing.
+
+Arguments:
+  None.
+
+Flags:
+  --projects-dir DIR
+      read the transcripts under DIR (default $CLAUDE_CONFIG_DIR/projects, else
+      $HOME/.claude/projects)
+  --since TIME
+      count usage at or after TIME, an RFC 3339 time such as
+      2026-11-07T00:00:00Z (required)
+
+Output:
+  One line of JSON on stdout, then exit 0:
+  - since: --since as UTC, in RFC 3339.
+  - by_skill: for each skill, input_tokens (an object with total: the input,
+    cache creation and cache read tokens) and output_tokens, and main, the same
+    two fields counted from main transcripts only.
+  - total: every input and output token counted, subagent transcripts included.
+  - total_main: the same count for main transcripts only.
+  - asks: for each skill, the AskUserQuestion prompts, as answered and
+    unanswered.
+  - human_turns: the messages a person wrote in main transcripts.
+  - sessions: the sessions that have main usage, sorted.
+  - files: how many transcript files snp read. A transcript whose last change
+    (mtime) is before --since is not read and does not count, even if it holds
+    lines from after --since, so old mtimes alone can give the no-usage warning
+    below.
+  - skipped_lines: how many lines were not JSON or could not be read.
+  Two warnings go to stderr and do not change the exit:
+  - snp: skipped <k> transcript lines that are not JSON
+  - snp: no usage found under <dir>; is this the session's HOME?
+  The second one comes when files is 0, by_skill is empty or total_main is 0.
+  The JSON line is still printed and the exit is still 0.
+
+Errors and exit codes:
+  usage error (exit 2)
+      A missing, empty or non-RFC 3339 --since: stderr says snp: INVALID:
+      --since must be an RFC 3339 time. Also an unknown flag, a flag with no
+      value, or any argument (usage report takes no arguments). snp read
+      nothing; fix the command and run it again.
+  NOT_FOUND (exit 4)
+      The projects directory is missing or is not a directory: stderr says snp:
+      NOT_FOUND: no Claude Code transcripts at <dir>. Check HOME or
+      CLAUDE_CONFIG_DIR, or pass --projects-dir.
+  INTERNAL (exit 1)
+      snp cannot find your home directory (and CLAUDE_CONFIG_DIR is unset), or
+      cannot read the projects directory. The message says why; fix it, then run
+      it again.
+
+Environment:
+  CLAUDE_CONFIG_DIR: Claude Code's config directory. When it is set and not
+  empty, the default projects directory is $CLAUDE_CONFIG_DIR/projects.
+  HOME: with CLAUDE_CONFIG_DIR unset, the default projects directory is
+  $HOME/.claude/projects.
+  --projects-dir wins over both.
+  snp usage report reads no SNP_* variables and never calls snpd.
+
+Examples:
+  # Everything since the start of the day:
+  SINCE=2026-11-07T00:00:00Z
+  snp usage report --since "$SINCE"
+  # Read copied transcripts instead of this machine's:
+  DIR=/tmp/transcripts
+  snp usage report --since "$SINCE" --projects-dir "$DIR"
+  # A date without a time is a usage error (exit 2):
+  snp usage report --since 2026-11-07
+```
+
 ## snp review-cap cap
 
 ```text

@@ -1118,6 +1118,162 @@ Examples:
   snp state transition milestone:sinopia/demo/M1 --from scoped --to planned
 ```
 
+## snp work create
+
+```text
+Usage:
+  snp work create --project <slug> --iniciativa <ini> --milestone <MID> --title
+      <text> --body <path|-> [--blocked-by N[,N...]]
+
+Description:
+  File one issue into a milestone, as one commit. The issue lands in backlog:
+  the commit holds the issue file, the milestone yaml's issues list and the
+  project's seq file, and snpd numbers the issue.
+  The milestone needs road: sinopia, a breakdown (a breakdown_key in its yaml;
+  if it has none, use snp work create_breakdown) and a state of planned or
+  in-progress.
+  A deferral goes to the project's standing maintenance milestone (for sinopia,
+  --iniciativa maintenance --milestone M1), not to the milestone being built: an
+  issue created into a milestone being built holds that milestone's done until
+  the issue is done or canceled.
+  Only a person moves a backlog issue to ready.
+  When an answer is lost, snp resends the same request id on its own, and snpd
+  replays the first result with replayed: true instead of writing twice. A
+  request id reused after 24 hours, or a new run of snp, files a new issue:
+  cancel a duplicate with snp work transition N --project S --expect-status
+  backlog --to canceled.
+
+Arguments:
+  --project <slug>: the project, such as sinopia.
+  --iniciativa <ini>: the iniciativa, such as demo.
+  --milestone <MID>: the milestone id, such as M1.
+  --title <text>: the issue title, one line.
+  --body <path|->: the issue body, up to 16 KiB of UTF-8 text, from a file or -
+  for stdin.
+  --blocked-by N[,N...]: a comma list of existing issue numbers of the project,
+  in any milestone. snp sorts it and drops duplicates.
+
+Flags:
+  --blocked-by N[,N...]
+      N[,N...]: issue numbers this one waits for
+  --body <path|->
+      <path|->: the issue body, or - for stdin (required)
+  --iniciativa <ini>
+      <ini>: the iniciativa (required)
+  --milestone <MID>
+      <MID>: the milestone (required)
+  --project <slug>
+      <slug>: the project (required)
+  --title <text>
+      <text>: the issue title (required)
+
+Output:
+  snpd's JSON on one line:
+  {"commit","parent","revs","replayed","overwrote","number","id"}. number and id
+  name the new issue. overwrote maps each id to the rev it replaced, or null
+  when the document is new. replayed is true when this request had already
+  landed.
+  After the write, snp moves your projection, if you have one, to the new
+  commit. If that fails, stderr gets "snp: PROJECTION_STALE: …" and snp still
+  exits 0, because the write landed; run snp pull.
+  On an error, stderr gets one line, snp: <CODE>: <message>, and stdout gets
+  snpd's error JSON when snpd sent one.
+
+Errors and exit codes:
+  usage error (exit 2)
+      An unknown flag, a bad flag value, the wrong number of arguments. snp sent
+      nothing; stderr says which, so fix the command and run it again.
+  NOT_FOUND (exit 4)
+      There is no roadmap for the iniciativa. Or the milestone has a breakdown
+      but its roadmap has no ### M{n} block. Nothing was written.
+  INVALID (exit 5)
+      The body file is missing, over 16384 bytes or not UTF-8 text (nothing is
+      sent); snpd refuses the title or body under its rules; a --blocked-by
+      number has no issue in the project or is not positive; there are more than
+      40 of them; the milestone's yaml or the seq file cannot be parsed; or
+      SNP_ORG is missing, or SNP_URL is not an http or https URL with a host.
+      Nothing was written; stderr says which.
+  ILLEGAL (exit 8)
+      The road is not sinopia, the milestone has no breakdown, or its state is
+      not planned or in-progress. A milestone with no yaml, including one whose
+      --milestone is misspelled, reads as having no breakdown; snp state get
+      milestone:<slug>/<ini>/<MID> shows whether it exists. Nothing was written;
+      stderr names which.
+  INSUFFICIENT_SCOPE (exit 7)
+      The token lacks the work scope. Ask your admin for a token that has it.
+      Nothing was written.
+  UNAVAILABLE (exit 15)
+      The org has no schema, or one this snpd can't read; stderr says which. Ask
+      your admin to run snpd admin schema install.
+  DIRTY_PROJECTION (exit 9)
+      Your projection (~/.snp/projection/<org>) has local changes, so snp sent
+      nothing. The message lists them. Copy out anything you want to keep,
+      delete the projection with the command in the message, run snp pull, then
+      write again.
+  UNAUTHENTICATED (exit 6)
+      SNP_TOKEN is malformed, unknown, revoked or expired, so snpd refused it.
+      Ask your admin for a new token. When SNP_TOKEN is not set, snp sent none:
+      set it, or add the snpd network secret to the cloud environment.
+  FORBIDDEN (exit 7)
+      SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
+      token's org, or use a token issued for this one.
+  TRANSPORT (exit 10)
+      No answer from snpd, or an answer from something else, such as a proxy,
+      after 2 retries, so the write may have landed. Run snp work query
+      --project <slug> --iniciativa <ini> --milestone <MID> --status backlog and
+      look for an issue with your title before you run it again: a new run files
+      a second issue.
+  BUSY (exit 11)
+      Another write held the org's lock too long, or the write hit snpd's
+      deadline, after 2 retries. Nothing changed; run it again in a few seconds.
+  CLIENT_TOO_OLD (exit 12)
+      This snp is too old: snpd accepts only a newer one. Install the version
+      the message names, then run it again.
+  REQUEST_ID_REUSED (exit 13)
+      A different write already used this write's request id on snpd. snp makes
+      a new id on each run, so run the command again.
+  LIMIT (exit 14)
+      The token went over its request rate, or this session reached its cap on
+      writes. Nothing was written. The message says which: wait and run it
+      again, or for the session cap, check for a loop before you set a new
+      SNP_SESSION.
+  INTERNAL (exit 1)
+      The request failed inside snpd in a way it does not expect, after 2
+      retries, so the write may have landed. Run snp work query --project <slug>
+      --iniciativa <ini> --milestone <MID> --status backlog and look for an
+      issue with your title before you run it again: a new run files a second
+      issue. If it fails again, send the message to your admin.
+
+Environment:
+  SNP_URL: snpd's base URL, such as https://host:8484. A url= line in
+  ~/.snp/config works too, and SNP_URL wins over it. With neither, snp uses
+  https://snp.tesselabs.com.
+  SNP_ORG: your org. Required; an org= line in ~/.snp/config works too, and
+  SNP_ORG wins over it.
+  SNP_TOKEN: your token, read only from the environment, never from argv or a
+  file. Leave it unset in a cloud session whose network secret adds it; snp then
+  sends no token of its own.
+  SNP_SESSION, or else CLAUDE_CODE_REMOTE_SESSION_ID, or else
+  CLAUDE_CODE_SESSION_ID: optional. A claude.ai cloud session sets the second,
+  which stays the same across /clear and worker restarts. snp sends the first
+  one set with every request, and a write records it on the commit as the
+  Snp-Session trailer; a write without a valid one is recorded as undeclared.
+  When SNP_ORG is missing, or SNP_URL is not an http or https URL with a host,
+  snp exits 5 (INVALID) and sends nothing.
+
+Examples:
+  # File an issue from a file:
+  snp work create --project sinopia --iniciativa demo --milestone M1 \
+    --title "Handle empty input" --body ./body.md
+  # From stdin, blocked by issues 3 and 5:
+  cat body.md | snp work create --project sinopia --iniciativa demo \
+    --milestone M1 --title "Retry on 503" --body - --blocked-by 5,3
+  # The milestone has no breakdown: exit 8, and stderr says
+  #   snp: ILLEGAL: … has no breakdown; …
+  snp work create --project sinopia --iniciativa demo --milestone M2 \
+    --title "Handle empty input" --body ./body.md
+```
+
 ## snp work create_breakdown
 
 ```text

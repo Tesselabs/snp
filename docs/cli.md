@@ -1430,7 +1430,7 @@ Examples:
 ```text
 Usage:
   snp work query --project <slug> [--iniciativa i] [--milestone M] [--status s]
-      [--limit n] [--cursor c] [--md]
+      [--limit n] [--cursor c] [--md] | -i [--project <slug>] [--iniciativa i]
 
 Description:
   List the issues of one project as they are at snpd's latest commit, sorted by
@@ -1441,8 +1441,8 @@ Description:
   To read one issue's state and the states it can move to, use snp state get.
 
 Arguments:
-  --project <slug>: the project to list. Required; without it snp sends nothing
-  and exits 2.
+  --project <slug>: the project to list. Required, except with -i; without it
+  snp sends nothing and exits 2.
   --iniciativa <name>: keep only the issues of this iniciativa.
   --milestone <MID>: keep only the issues of this milestone, such as M1. It
   needs --iniciativa: a milestone alone is INVALID.
@@ -1452,13 +1452,23 @@ Arguments:
   --cursor <c>: the next value of the previous page, to get the page after it.
   Pass the same filters.
   --md: print markdown instead of JSON.
+  -i, --interactive: on a terminal, pick the project, iniciativa and milestone
+  from numbered lists (--project and --iniciativa preselect theirs), then show
+  that milestone on one screen: its state, a done/total count and one line per
+  issue with a status glyph and word. Press r to refresh, q to quit; on linux
+  one key is enough, elsewhere press Enter after it. It takes no other flag, and
+  without a terminal on stdin and stdout snp exits 2.
   There are no positional arguments.
 
 Flags:
   --cursor string
       the next value of the previous page
+  -i
+      the same as --interactive
   --iniciativa string
       only this iniciativa
+  --interactive
+      pick a milestone and watch it on a terminal
   --limit int
       issues per page, 1 to 200 (default 50)
   --md
@@ -1498,8 +1508,13 @@ Errors and exit codes:
       machine, a filter is not a valid name, or SNP_ORG is missing, or SNP_URL
       is not an http or https URL with a host. stderr says which; fix it, or
       drop --cursor to start from the first page.
+  NOT_FOUND (exit 4)
+      With -i: the --project or --iniciativa to preselect does not exist, there
+      is nothing to pick, or a milestone has a yaml but no ### M{n} block in its
+      roadmap.
   INSUFFICIENT_SCOPE (exit 7)
-      The token lacks the work scope. Ask your admin for a token that has it.
+      The token lacks the work scope; -i also needs the mem and state scopes.
+      Ask your admin for a token that has them.
   UNAVAILABLE (exit 15)
       The org has no schema, or one this snpd can't read; stderr says which. Ask
       your admin to run snpd admin schema install.
@@ -1548,6 +1563,8 @@ Examples:
   snp work query --project sinopia --iniciativa x --milestone M1 --status ready
   # The page after a "More: --cursor 50" line:
   snp work query --project sinopia --md --cursor 50
+  # Pick a milestone and watch it:
+  snp work query -i
   # A milestone without its iniciativa: exit 5, and stderr says
   #   snp: INVALID: …
   snp work query --project sinopia --milestone M1

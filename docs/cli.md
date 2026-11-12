@@ -170,13 +170,16 @@ Arguments:
   - it is not _search or _commit (a nested x/_search is fine)
   snpd then applies the rule for writes: agents write only
   projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
-  digits, spaces, dots, dashes or underscores in each name. In any letter case,
-  MEMORY.md, a memory/ folder and a top .snp/ folder are refused with
-  INSUFFICIENT_SCOPE, and the names CLAUDE.md, AGENTS.md and SKILL.md with
-  INVALID. The issue and milestone folders, projects/<slug>/issues/ and
-  projects/<slug>/<iniciativa>/milestones/, are refused with INSUFFICIENT_SCOPE
-  too: write them through snp work / snp state. An id under a path that is
-  already a document is INVALID.
+  digits, spaces, dots, dashes or underscores in each name. A token bound to a
+  machine also writes its own machine home, machines/<name>/…/<name>.md or
+  .yaml; another machine's home is refused with INSUFFICIENT_SCOPE, and so is
+  any machines/ id from a token with no machine home: ask your Sinopia admin to
+  run snpd admin token set-machine. In any letter case, MEMORY.md, a memory/
+  folder and a top .snp/ folder are refused with INSUFFICIENT_SCOPE, and the
+  names CLAUDE.md, AGENTS.md and SKILL.md with INVALID. The issue and milestone
+  folders, projects/<slug>/issues/ and projects/<slug>/<iniciativa>/milestones/,
+  are refused with INSUFFICIENT_SCOPE too: write them through snp work / snp
+  state. An id under a path that is already a document is INVALID.
 
 Flags:
   --expect-rev <id>=<rev|new> (repeatable)
@@ -234,9 +237,11 @@ Errors and exit codes:
       The token lacks the mem scope, or the id is reserved for people and admins
       (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
       projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. For anything else, write under
-      projects/<slug>/ instead, or ask your admin for a token with the mem
-      scope. Nothing was written.
+      those through snp work / snp state. Under machines/, a token writes only
+      its own home, machines/<name>/; a token with no machine home writes none:
+      ask your Sinopia admin to run snpd admin token set-machine. For anything
+      else, write under projects/<slug>/ instead, or ask your admin for a token
+      with the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The write changes a milestone's Status line on a road: sinopia roadmap
       (the first - **Status:** line of a ### M<n> block). Only pending to scoped
@@ -344,13 +349,16 @@ Arguments:
   - it is not _search or _commit (a nested x/_search is fine)
   snpd then applies the rule for writes: agents write only
   projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
-  digits, spaces, dots, dashes or underscores in each name. In any letter case,
-  MEMORY.md, a memory/ folder and a top .snp/ folder are refused with
-  INSUFFICIENT_SCOPE, and the names CLAUDE.md, AGENTS.md and SKILL.md with
-  INVALID. The issue and milestone folders, projects/<slug>/issues/ and
-  projects/<slug>/<iniciativa>/milestones/, are refused with INSUFFICIENT_SCOPE
-  too: write them through snp work / snp state. An id under a path that is
-  already a document is INVALID.
+  digits, spaces, dots, dashes or underscores in each name. A token bound to a
+  machine also writes its own machine home, machines/<name>/…/<name>.md or
+  .yaml; another machine's home is refused with INSUFFICIENT_SCOPE, and so is
+  any machines/ id from a token with no machine home: ask your Sinopia admin to
+  run snpd admin token set-machine. In any letter case, MEMORY.md, a memory/
+  folder and a top .snp/ folder are refused with INSUFFICIENT_SCOPE, and the
+  names CLAUDE.md, AGENTS.md and SKILL.md with INVALID. The issue and milestone
+  folders, projects/<slug>/issues/ and projects/<slug>/<iniciativa>/milestones/,
+  are refused with INSUFFICIENT_SCOPE too: write them through snp work / snp
+  state. An id under a path that is already a document is INVALID.
 
 Flags:
   --expect-rev string
@@ -402,9 +410,11 @@ Errors and exit codes:
       The token lacks the mem scope, or the id is reserved for people and admins
       (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
       projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. For anything else, write under
-      projects/<slug>/ instead, or ask your admin for a token with the mem
-      scope. Nothing was written.
+      those through snp work / snp state. Under machines/, a token writes only
+      its own home, machines/<name>/; a token with no machine home writes none:
+      ask your Sinopia admin to run snpd admin token set-machine. For anything
+      else, write under projects/<slug>/ instead, or ask your admin for a token
+      with the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The write changes a milestone's Status line on a road: sinopia roadmap
       (the first - **Status:** line of a ### M<n> block). Only pending to scoped
@@ -501,13 +511,16 @@ Arguments:
   - it is not _search or _commit (a nested x/_search is fine)
   snpd then applies the rule for writes: agents write only
   projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
-  digits, spaces, dots, dashes or underscores in each name. In any letter case,
-  MEMORY.md, a memory/ folder and a top .snp/ folder are refused with
-  INSUFFICIENT_SCOPE, and the names CLAUDE.md, AGENTS.md and SKILL.md with
-  INVALID. The issue and milestone folders, projects/<slug>/issues/ and
-  projects/<slug>/<iniciativa>/milestones/, are refused with INSUFFICIENT_SCOPE
-  too: write them through snp work / snp state. An id under a path that is
-  already a document is INVALID.
+  digits, spaces, dots, dashes or underscores in each name. A token bound to a
+  machine also writes its own machine home, machines/<name>/…/<name>.md or
+  .yaml; another machine's home is refused with INSUFFICIENT_SCOPE, and so is
+  any machines/ id from a token with no machine home: ask your Sinopia admin to
+  run snpd admin token set-machine. In any letter case, MEMORY.md, a memory/
+  folder and a top .snp/ folder are refused with INSUFFICIENT_SCOPE, and the
+  names CLAUDE.md, AGENTS.md and SKILL.md with INVALID. The issue and milestone
+  folders, projects/<slug>/issues/ and projects/<slug>/<iniciativa>/milestones/,
+  are refused with INSUFFICIENT_SCOPE too: write them through snp work / snp
+  state. An id under a path that is already a document is INVALID.
 
 Flags:
   --file string
@@ -554,9 +567,11 @@ Errors and exit codes:
       The token lacks the mem scope, or the id is reserved for people and admins
       (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
       projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. For anything else, write under
-      projects/<slug>/ instead, or ask your admin for a token with the mem
-      scope. Nothing was written.
+      those through snp work / snp state. Under machines/, a token writes only
+      its own home, machines/<name>/; a token with no machine home writes none:
+      ask your Sinopia admin to run snpd admin token set-machine. For anything
+      else, write under projects/<slug>/ instead, or ask your admin for a token
+      with the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The write changes a milestone's Status line on a road: sinopia roadmap
       (the first - **Status:** line of a ### M<n> block). Only pending to scoped
@@ -1947,6 +1962,149 @@ Examples:
   # With an SNP_URL that has no scheme: exit 5, and stderr says
   #   snp: INVALID: SNP_URL is not a valid URL (it must start with http:// …
   SNP_URL=localhost:8484 snp root
+```
+
+## snp whoami
+
+```text
+Usage:
+  snp whoami
+
+Description:
+  Call snpd's whoami route once and print snpd's answer as it came, without
+  decoding it.
+  machine is the machine home the token writes to, and "" for a token bound to
+  none. An older snpd sends no machine key. To bind a token to a machine, ask
+  your Sinopia admin to run snpd admin token set-machine.
+
+Arguments:
+  None.
+
+Output:
+  One line of JSON on stdout, {"id", "org", "scopes", "expires", "schema",
+  "machine"}, as snpd sent it.
+  On an error, stderr gets one line, snp: <CODE>: <message>, and stdout gets
+  snpd's error JSON when snpd sent one.
+
+Errors and exit codes:
+  usage error (exit 2)
+      An unknown flag, a bad flag value, the wrong number of arguments. snp sent
+      nothing; stderr says which, so fix the command and run it again.
+  INVALID (exit 5)
+      SNP_ORG is missing, or SNP_URL is not an http or https URL with a host.
+      snp sent nothing; stderr says which, so fix it and run it again.
+  UNAUTHENTICATED (exit 6)
+      SNP_TOKEN is malformed, unknown, revoked or expired, so snpd refused it.
+      Ask your admin for a new token. When SNP_TOKEN is not set, snp sent none:
+      set it, or add the snpd network secret to the cloud environment.
+  FORBIDDEN (exit 7)
+      SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
+      token's org, or use a token issued for this one.
+  TRANSPORT (exit 10)
+      No answer from snpd, or an answer from something else, such as a proxy,
+      after 2 retries. Check the network and that SNP_URL points at snpd, then
+      run it again.
+  CLIENT_TOO_OLD (exit 12)
+      This snp is too old: snpd accepts only a newer one. Install the version
+      the message names, then run it again.
+  LIMIT (exit 14)
+      The token went over its request rate. Wait the seconds the message names,
+      then run it again.
+  INTERNAL (exit 1)
+      The request failed inside snpd in a way it does not expect, after 2
+      retries. Run it again; if it fails again, send the message to your admin.
+
+Environment:
+  SNP_URL: snpd's base URL, such as https://host:8484. A url= line in
+  ~/.snp/config works too, and SNP_URL wins over it. With neither, snp uses
+  https://snp.tesselabs.com.
+  SNP_ORG: your org. Required; an org= line in ~/.snp/config works too, and
+  SNP_ORG wins over it.
+  SNP_TOKEN: your token, read only from the environment, never from argv or a
+  file. Leave it unset in a cloud session whose network secret adds it; snp then
+  sends no token of its own.
+  SNP_SESSION, or else CLAUDE_CODE_REMOTE_SESSION_ID, or else
+  CLAUDE_CODE_SESSION_ID: optional. A claude.ai cloud session sets the second,
+  which stays the same across /clear and worker restarts. snp sends the first
+  one set with every request, and a write records it on the commit as the
+  Snp-Session trailer; a write without a valid one is recorded as undeclared.
+  When SNP_ORG is missing, or SNP_URL is not an http or https URL with a host,
+  snp exits 5 (INVALID) and sends nothing.
+
+Examples:
+  snp whoami
+  # The machine home your token writes to:
+  snp whoami | grep -o '"machine":"[^"]*"'
+  # With a token snpd refuses: exit 6, UNAUTHENTICATED
+  SNP_TOKEN=wrong snp whoami
+```
+
+## snp home
+
+```text
+Usage:
+  snp home
+
+Description:
+  Ask snpd which machine your token is bound to, then print that machine's home
+  from the local projection: machines/<machine>/ under ~/.snp/projection/<org>/.
+  snp home has four states: no machine configured for the token, snpd
+  unreachable, a machine whose home holds no .md or .yaml file, and a home with
+  notes. The first line says which. A home with notes prints its index.md alone
+  when it has one; otherwise it prints the list of notes, then the newest notes,
+  and stops at 20000 bytes.
+  snp home reads your own machine's home only, and it does not pull: run snp
+  pull first when you want the latest. It exits 0 in every state, so a hook can
+  run it without guarding.
+
+Arguments:
+  None.
+
+Output:
+  One header line on stdout, then the summary when the home has notes:
+  machine home: none configured; ask your Sinopia admin to run snpd admin token
+  set-machine
+  machine home: none configured (snpd predates machine homes; update snpd)
+  machine home: none configured (snpd returned an invalid machine name)
+  machine home: snpd unreachable (<CODE>)
+  machine home: machines/<machine>/ is empty
+  machine home: machines/<machine>/ (<n> notes, <bytes> bytes read, truncated:
+  <yes or no>)
+  With index.md in the home, the header is followed by ==
+  machines/<machine>/index.md == and the file, cut at 20000 bytes. Without it,
+  one line per note (machines/<machine>/<file>, ending in " (unreadable)" for a
+  file that cannot be read), then the newest notes, each starting with ==
+  machines/<machine>/<file> ==, until 20000 bytes are read.
+
+Errors and exit codes:
+  usage error (exit 2)
+      An unknown flag, a bad flag value, the wrong number of arguments. snp sent
+      nothing; stderr says which, so fix the command and run it again.
+
+Environment:
+  SNP_URL: snpd's base URL, such as https://host:8484. A url= line in
+  ~/.snp/config works too, and SNP_URL wins over it. With neither, snp uses
+  https://snp.tesselabs.com.
+  SNP_ORG: your org. Required; an org= line in ~/.snp/config works too, and
+  SNP_ORG wins over it.
+  SNP_TOKEN: your token, read only from the environment, never from argv or a
+  file. Leave it unset in a cloud session whose network secret adds it; snp then
+  sends no token of its own.
+  SNP_SESSION, or else CLAUDE_CODE_REMOTE_SESSION_ID, or else
+  CLAUDE_CODE_SESSION_ID: optional. A claude.ai cloud session sets the second,
+  which stays the same across /clear and worker restarts. snp sends the first
+  one set with every request, and a write records it on the commit as the
+  Snp-Session trailer; a write without a valid one is recorded as undeclared.
+  When SNP_ORG is missing, or SNP_URL is not an http or https URL with a host,
+  snp home prints machine home: snpd unreachable (INVALID), sends nothing and
+  exits 0.
+
+Examples:
+  snp home
+  # Refresh the projection first:
+  snp pull && snp home
+  # An argument it does not take: exit 2, nothing sent
+  snp home extra
 ```
 
 ## snp skills install

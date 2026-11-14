@@ -53,7 +53,7 @@ Arguments:
   - it has no control character
   - it has no empty or . segment (no // and no /./)
   - it has no .git segment, in any case (.GIT too)
-  - it is not _search or _commit (a nested x/_search is fine)
+  - it is not _search, _commit or _promote (a nested x/_search is fine)
   Those are the only rules a read applies. The rule for writes is stricter, and
   mem get does not apply it: agents write only projects/<slug>/…/<name>.md or
   .yaml, with a lowercase slug and letters, digits, spaces, dots, dashes or
@@ -167,7 +167,7 @@ Arguments:
   - it has no control character
   - it has no empty or . segment (no // and no /./)
   - it has no .git segment, in any case (.GIT too)
-  - it is not _search or _commit (a nested x/_search is fine)
+  - it is not _search, _commit or _promote (a nested x/_search is fine)
   snpd then applies the rule for writes: agents write only
   projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
   digits, spaces, dots, dashes or underscores in each name. A token bound to a
@@ -346,7 +346,7 @@ Arguments:
   - it has no control character
   - it has no empty or . segment (no // and no /./)
   - it has no .git segment, in any case (.GIT too)
-  - it is not _search or _commit (a nested x/_search is fine)
+  - it is not _search, _commit or _promote (a nested x/_search is fine)
   snpd then applies the rule for writes: agents write only
   projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
   digits, spaces, dots, dashes or underscores in each name. A token bound to a
@@ -508,7 +508,7 @@ Arguments:
   - it has no control character
   - it has no empty or . segment (no // and no /./)
   - it has no .git segment, in any case (.GIT too)
-  - it is not _search or _commit (a nested x/_search is fine)
+  - it is not _search, _commit or _promote (a nested x/_search is fine)
   snpd then applies the rule for writes: agents write only
   projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
   digits, spaces, dots, dashes or underscores in each name. A token bound to a
@@ -633,6 +633,174 @@ Examples:
   # Without --file: exit 2, and stderr says
   #   snp: mem append takes <id> --file <path>, or --file - to read stdin
   snp mem append projects/demo/notes.md
+```
+
+## snp mem delete
+
+```text
+Usage:
+  snp mem delete <id> --expect-rev <rev> [--reason …] [--md]
+
+Description:
+  Delete one document, as one commit, only if its rev is still the one you pass
+  to --expect-rev. Your projection drops the file when this write syncs it.
+  Delete is not erasure: git history and the GitHub mirror keep the content. To
+  undo a delete, the operator runs snpd admin revert --session <S>, which
+  restores the document at its path. A later snp mem append to the same id
+  creates a new document.
+  A delete is refused wherever a put of the same id is refused. Guarded files
+  and road: sinopia roadmaps are deleted only with snpd admin delete.
+  One call deletes one document. A folder id, such as projects/demo, is INVALID:
+  snp passes it on and snpd refuses it.
+  To replace a document, use snp mem put.
+
+Arguments:
+  <id>: the document, such as projects/demo/old.md.
+  --expect-rev <rev>: required. The rev snp mem get --rev-only printed: 40
+  lowercase hex characters. new is not accepted.
+  --reason <text>: recorded on the commit as the Snp-Reason trailer, as on snp
+  mem put.
+  snp checks every id before it sends anything, and exits 5 (INVALID) unless:
+  - it is not empty
+  - it is at most 512 bytes
+  - it is UTF-8
+  - it does not start with /
+  - it does not contain ..
+  - it has no control character
+  - it has no empty or . segment (no // and no /./)
+  - it has no .git segment, in any case (.GIT too)
+  - it is not _search, _commit or _promote (a nested x/_search is fine)
+  snpd then applies the rule for writes: agents write only
+  projects/<slug>/…/<name>.md or .yaml, with a lowercase slug and letters,
+  digits, spaces, dots, dashes or underscores in each name. A token bound to a
+  machine also writes its own machine home, machines/<name>/…/<name>.md or
+  .yaml; another machine's home is refused with INSUFFICIENT_SCOPE, and so is
+  any machines/ id from a token with no machine home: ask your Sinopia admin to
+  run snpd admin token set-machine. In any letter case, MEMORY.md, a memory/
+  folder and a top .snp/ folder are refused with INSUFFICIENT_SCOPE, and the
+  names CLAUDE.md, AGENTS.md and SKILL.md with INVALID. The issue and milestone
+  folders, projects/<slug>/issues/ and projects/<slug>/<iniciativa>/milestones/,
+  are refused with INSUFFICIENT_SCOPE too: write them through snp work / snp
+  state. An id under a path that is already a document is INVALID.
+
+Flags:
+  --expect-rev string
+      <rev>
+  --md
+      print markdown
+  --reason string
+      <text>
+
+Output:
+  - Default: snpd's JSON on one line,
+    {"commit","parent","revs","replayed","overwrote"}. commit is the new commit
+    and parent the one before it. revs maps each id to its new rev. overwrote
+    maps each id to the rev it replaced, or null when the document is new.
+    replayed is true when this request had already landed, so nothing new was
+    written.
+  - --md: "Wrote commit <commit> on top of <parent>." (or, when replayed, "This
+    write had already landed as commit <commit>; nothing new was written."),
+    then one "- <id>: rev <rev> (was <old rev>)" line per id, with "(new
+    document)" in place of "(was …)" for a new one.
+  After the write, snp moves your projection, if you have one, to the new
+  commit. If that fails, stderr gets "snp: PROJECTION_STALE: …" and snp still
+  exits 0, because the write landed; run snp pull.
+  On an error, stderr gets one line, snp: <CODE>: <message>, and stdout gets
+  snpd's error JSON when snpd sent one.
+  On a delete, deleted lists the deleted ids, and overwrote maps each one to the
+  rev it had. With --md, each deleted id is one line, "- <id>: deleted (was
+  <rev>)".
+
+Errors and exit codes:
+  usage error (exit 2)
+      An unknown flag, a bad flag value, no <id>, more than one <id>, or an
+      --expect-rev that is missing, is new, or is not 40 lowercase hex
+      characters. snp sent nothing; stderr says which, so fix the command and
+      run it again.
+  CONFLICT (exit 3)
+      The document's rev is not the one you passed: it changed since you read
+      it. Nothing was deleted. Read it again with snp mem get, check that it
+      should still go, and delete with the current rev.
+  NOT_FOUND (exit 4)
+      There is no document at that id. Nothing was deleted. Check the id with
+      snp mem list.
+  INVALID (exit 5)
+      The id breaks a rule above or is a folder, or this snpd does not support
+      snp mem delete yet (stderr says so; update snpd, runbook section 2), or
+      SNP_ORG is missing, or SNP_URL is not an http or https URL with a host.
+      Nothing was deleted; stderr says which, so fix it and run it again.
+  UNAUTHENTICATED (exit 6)
+      SNP_TOKEN is malformed, unknown, revoked or expired, so snpd refused it.
+      Ask your admin for a new token. When SNP_TOKEN is not set, snp sent none:
+      set it, or add the snpd network secret to the cloud environment.
+  FORBIDDEN (exit 7)
+      SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
+      token's org, or use a token issued for this one.
+  INSUFFICIENT_SCOPE (exit 7)
+      The token lacks the mem scope, or the id is reserved for people and admins
+      (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
+      projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
+      those through snp work / snp state. Under machines/, a token writes only
+      its own home, machines/<name>/; a token with no machine home writes none:
+      ask your Sinopia admin to run snpd admin token set-machine. For anything
+      else, write under projects/<slug>/ instead, or ask your admin for a token
+      with the mem scope. Nothing was written.
+  ILLEGAL (exit 8)
+      The document is a road: sinopia roadmap, or its road line is invalid; only
+      snpd admin delete removes it. Nothing was written.
+  DIRTY_PROJECTION (exit 9)
+      Your projection (~/.snp/projection/<org>) has local changes, so snp sent
+      nothing. The message lists them. Copy out anything you want to keep,
+      delete the projection with the command in the message, run snp pull, then
+      write again.
+  TRANSPORT (exit 10)
+      No answer from snpd, or an answer from something else, such as a proxy,
+      after 2 retries, so the write may have landed. Run snp mem get on each id
+      to check before you write again.
+  BUSY (exit 11)
+      Another write held the org's lock too long, or the write hit snpd's
+      deadline, after 2 retries. Nothing changed; run it again in a few seconds.
+  CLIENT_TOO_OLD (exit 12)
+      This snp is too old: snpd accepts only a newer one. Install the version
+      the message names, then run it again.
+  REQUEST_ID_REUSED (exit 13)
+      A different write already used this write's request id on snpd. snp makes
+      a new id on each run, so run the command again.
+  LIMIT (exit 14)
+      The token went over its request rate, or this session reached its cap on
+      writes. Nothing was written. The message says which: wait and run it
+      again, or for the session cap, check for a loop before you set a new
+      SNP_SESSION.
+  INTERNAL (exit 1)
+      The request failed inside snpd in a way it does not expect, after 2
+      retries. Run snp mem get on each id to check whether the write landed
+      before you run it again; if it fails again, send the message to your
+      admin.
+
+Environment:
+  SNP_URL: snpd's base URL, such as https://host:8484. A url= line in
+  ~/.snp/config works too, and SNP_URL wins over it. With neither, snp uses
+  https://snp.tesselabs.com.
+  SNP_ORG: your org. Required; an org= line in ~/.snp/config works too, and
+  SNP_ORG wins over it.
+  SNP_TOKEN: your token, read only from the environment, never from argv or a
+  file. Leave it unset in a cloud session whose network secret adds it; snp then
+  sends no token of its own.
+  SNP_SESSION, or else CLAUDE_CODE_REMOTE_SESSION_ID, or else
+  CLAUDE_CODE_SESSION_ID: optional. A claude.ai cloud session sets the second,
+  which stays the same across /clear and worker restarts. snp sends the first
+  one set with every request, and a write records it on the commit as the
+  Snp-Session trailer; a write without a valid one is recorded as undeclared.
+  When SNP_ORG is missing, or SNP_URL is not an http or https URL with a host,
+  snp exits 5 (INVALID) and sends nothing.
+
+Examples:
+  # Delete a document you have just read:
+  rev=$(snp mem get projects/demo/old.md --rev-only)
+  snp mem delete projects/demo/old.md --expect-rev "$rev" --reason "superseded"
+  # The document changed after you read it: exit 3, and stderr says
+  #   snp: CONFLICT: projects/demo/old.md changed since you read it; …
+  snp mem delete projects/demo/old.md --expect-rev "$rev"
 ```
 
 ## snp mem list

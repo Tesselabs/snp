@@ -2727,7 +2727,8 @@ Examples:
 
 ```text
 Usage:
-  snp usage report --since <RFC 3339 time> [--projects-dir <dir>]
+  snp usage report --since <RFC 3339 time> [--session <id>]... [--projects-dir
+      <dir>]
 
 Description:
   Count the tokens, human turns and AskUserQuestion prompts that Claude Code
@@ -2737,7 +2738,8 @@ Description:
   and the subagent transcripts of each session,
   <session>/subagents/agent-*.jsonl. Each usage recorded at or after --since
   goes to the skill active when it was recorded; before any skill is active it
-  goes to (none).
+  goes to (none). With --session, only the main and subagent transcripts of the
+  named sessions count, in every project folder.
   snp usage report makes no network call, never calls snpd, reads no SNP_*
   variable and writes nothing.
 
@@ -2748,6 +2750,9 @@ Flags:
   --projects-dir DIR
       read the transcripts under DIR (default $CLAUDE_CONFIG_DIR/projects, else
       $HOME/.claude/projects)
+  --session ID (repeatable)
+      count only the transcripts of session ID (its <ID>.jsonl and
+      <ID>/subagents/agent-*.jsonl); repeat it for more sessions
   --since TIME
       count usage at or after TIME, an RFC 3339 time such as
       2026-11-07T00:00:00Z (required)
@@ -2769,6 +2774,11 @@ Output:
     lines from after --since, so old mtimes alone can give the no-usage warning
     below.
   - skipped_lines: how many lines were not JSON or could not be read.
+  - until: the UTC time the report was taken, in RFC 3339 with seconds; lines
+    recorded after it do not count.
+  - excluded_live: with --session, the main transcripts of other sessions
+    changed at or after --since in a project folder that holds a named session;
+    0 without --session.
   Two warnings go to stderr and do not change the exit:
   - snp: skipped <k> transcript lines that are not JSON
   - snp: no usage found under <dir>; is this the session's HOME?
@@ -2778,8 +2788,10 @@ Output:
 Errors and exit codes:
   usage error (exit 2)
       A missing, empty or non-RFC 3339 --since: stderr says snp: INVALID:
-      --since must be an RFC 3339 time. Also an unknown flag, a flag with no
-      value, or any argument (usage report takes no arguments). snp read
+      --since must be an RFC 3339 time. A --session that is not a session id (1
+      to 200 letters, digits, dots, underscores or hyphens): stderr says snp:
+      INVALID: --session must be a session id. Also an unknown flag, a flag with
+      no value, or any argument (usage report takes no arguments). snp read
       nothing; fix the command and run it again.
   NOT_FOUND (exit 4)
       The projects directory is missing or is not a directory: stderr says snp:
@@ -2805,6 +2817,9 @@ Examples:
   # Read copied transcripts instead of this machine's:
   DIR=/tmp/transcripts
   snp usage report --since "$SINCE" --projects-dir "$DIR"
+  # Only one session, and its subagents:
+  SESSION_ID=3f2a9c1e-5b7d-4e60-9a1c-2d8f0b6e4a77
+  snp usage report --since "$SINCE" --session "$SESSION_ID"
   # A date without a time is a usage error (exit 2):
   snp usage report --since 2026-11-07
 ```

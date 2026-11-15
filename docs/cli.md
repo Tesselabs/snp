@@ -234,14 +234,17 @@ Errors and exit codes:
       SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
       token's org, or use a token issued for this one.
   INSUFFICIENT_SCOPE (exit 7)
-      The token lacks the mem scope, or the id is reserved for people and admins
-      (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
-      projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. Under machines/, a token writes only
-      its own home, machines/<name>/; a token with no machine home writes none:
-      ask your Sinopia admin to run snpd admin token set-machine. For anything
-      else, write under projects/<slug>/ instead, or ask your admin for a token
-      with the mem scope. Nothing was written.
+      The token lacks the mem scope, or the id is team or org memory
+      (teams/<team>/, a top MEMORY.md, a top memory/ folder), written only with
+      snp mem promote and the promote scope, or it is reserved for people and
+      admins (a MEMORY.md or memory/ folder inside projects/ or machines/, a top
+      .snp/ folder), or it is under projects/<slug>/issues/ or
+      projects/<slug>/<iniciativa>/milestones/: write those through snp work /
+      snp state. Under machines/, a token writes only its own home,
+      machines/<name>/; a token with no machine home writes none: ask your
+      Sinopia admin to run snpd admin token set-machine. For anything else,
+      write under projects/<slug>/ instead, or ask your admin for a token with
+      the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The write changes a milestone's Status line on a road: sinopia roadmap
       (the first - **Status:** line of a ### M<n> block). Only pending to scoped
@@ -407,14 +410,17 @@ Errors and exit codes:
       SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
       token's org, or use a token issued for this one.
   INSUFFICIENT_SCOPE (exit 7)
-      The token lacks the mem scope, or the id is reserved for people and admins
-      (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
-      projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. Under machines/, a token writes only
-      its own home, machines/<name>/; a token with no machine home writes none:
-      ask your Sinopia admin to run snpd admin token set-machine. For anything
-      else, write under projects/<slug>/ instead, or ask your admin for a token
-      with the mem scope. Nothing was written.
+      The token lacks the mem scope, or the id is team or org memory
+      (teams/<team>/, a top MEMORY.md, a top memory/ folder), written only with
+      snp mem promote and the promote scope, or it is reserved for people and
+      admins (a MEMORY.md or memory/ folder inside projects/ or machines/, a top
+      .snp/ folder), or it is under projects/<slug>/issues/ or
+      projects/<slug>/<iniciativa>/milestones/: write those through snp work /
+      snp state. Under machines/, a token writes only its own home,
+      machines/<name>/; a token with no machine home writes none: ask your
+      Sinopia admin to run snpd admin token set-machine. For anything else,
+      write under projects/<slug>/ instead, or ask your admin for a token with
+      the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The write changes a milestone's Status line on a road: sinopia roadmap
       (the first - **Status:** line of a ### M<n> block). Only pending to scoped
@@ -564,14 +570,17 @@ Errors and exit codes:
       SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
       token's org, or use a token issued for this one.
   INSUFFICIENT_SCOPE (exit 7)
-      The token lacks the mem scope, or the id is reserved for people and admins
-      (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
-      projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. Under machines/, a token writes only
-      its own home, machines/<name>/; a token with no machine home writes none:
-      ask your Sinopia admin to run snpd admin token set-machine. For anything
-      else, write under projects/<slug>/ instead, or ask your admin for a token
-      with the mem scope. Nothing was written.
+      The token lacks the mem scope, or the id is team or org memory
+      (teams/<team>/, a top MEMORY.md, a top memory/ folder), written only with
+      snp mem promote and the promote scope, or it is reserved for people and
+      admins (a MEMORY.md or memory/ folder inside projects/ or machines/, a top
+      .snp/ folder), or it is under projects/<slug>/issues/ or
+      projects/<slug>/<iniciativa>/milestones/: write those through snp work /
+      snp state. Under machines/, a token writes only its own home,
+      machines/<name>/; a token with no machine home writes none: ask your
+      Sinopia admin to run snpd admin token set-machine. For anything else,
+      write under projects/<slug>/ instead, or ask your admin for a token with
+      the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The write changes a milestone's Status line on a road: sinopia roadmap
       (the first - **Status:** line of a ### M<n> block). Only pending to scoped
@@ -645,8 +654,8 @@ Description:
   Delete one document, as one commit, only if its rev is still the one you pass
   to --expect-rev. Your projection drops the file when this write syncs it.
   Delete is not erasure: git history and the GitHub mirror keep the content. To
-  undo a delete, the operator runs snpd admin revert --session <S>, which
-  restores the document at its path. A later snp mem append to the same id
+  undo a delete, the operator runs snpd admin revert --org <org> --session <S>,
+  which restores the document at its path. A later snp mem append to the same id
   creates a new document.
   A delete is refused wherever a put of the same id is refused. Guarded files
   and road: sinopia roadmaps are deleted only with snpd admin delete.
@@ -737,14 +746,17 @@ Errors and exit codes:
       SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
       token's org, or use a token issued for this one.
   INSUFFICIENT_SCOPE (exit 7)
-      The token lacks the mem scope, or the id is reserved for people and admins
-      (MEMORY.md, a memory/ folder, a top .snp/ folder), or it is under
-      projects/<slug>/issues/ or projects/<slug>/<iniciativa>/milestones/: write
-      those through snp work / snp state. Under machines/, a token writes only
-      its own home, machines/<name>/; a token with no machine home writes none:
-      ask your Sinopia admin to run snpd admin token set-machine. For anything
-      else, write under projects/<slug>/ instead, or ask your admin for a token
-      with the mem scope. Nothing was written.
+      The token lacks the mem scope, or the id is team or org memory
+      (teams/<team>/, a top MEMORY.md, a top memory/ folder), written only with
+      snp mem promote and the promote scope, or it is reserved for people and
+      admins (a MEMORY.md or memory/ folder inside projects/ or machines/, a top
+      .snp/ folder), or it is under projects/<slug>/issues/ or
+      projects/<slug>/<iniciativa>/milestones/: write those through snp work /
+      snp state. Under machines/, a token writes only its own home,
+      machines/<name>/; a token with no machine home writes none: ask your
+      Sinopia admin to run snpd admin token set-machine. For anything else,
+      write under projects/<slug>/ instead, or ask your admin for a token with
+      the mem scope. Nothing was written.
   ILLEGAL (exit 8)
       The document is a road: sinopia roadmap, or its road line is invalid; only
       snpd admin delete removes it. Nothing was written.
@@ -801,6 +813,179 @@ Examples:
   # The document changed after you read it: exit 3, and stderr says
   #   snp: CONFLICT: projects/demo/old.md changed since you read it; …
   snp mem delete projects/demo/old.md --expect-rev "$rev"
+```
+
+## snp mem promote
+
+```text
+Usage:
+  snp mem promote --file <id>=<path> --expect-rev <id>=<rev|new> [--file …
+      --expect-rev …] [--reason …] [--md]
+  snp mem promote --delete <id> --expect-rev <rev> [--reason …] [--md]
+
+Description:
+  Write or delete team memory (teams/<team>/…) and org memory (a top MEMORY.md,
+  a top memory/ folder) as one commit, through snpd's promote route. The token
+  needs the promote scope, and snpd gives it only together with mem. Team memory
+  is what snp home prints into every session's preflight.
+  snp mem put, set, append and delete refuse these ids with a hint naming snp
+  mem promote. snp mem promote refuses every id outside them: write those with
+  snp mem put. It also refuses a spelling that is not exact, such as
+  Teams/x/a.md, memory.md or teams./x/a.md.
+  File mode works like snp mem put: up to 50 documents in one commit, and the
+  whole request is at most 1 MiB. --delete removes one document, like snp mem
+  delete.
+  Promote is not erasure: git history and the GitHub mirror keep the content. To
+  undo a promote or a promote delete, the operator runs snpd admin revert --org
+  <org> --session <S>.
+  Against an older snpd, snp mem promote answers NOT_FOUND with "this snpd does
+  not support snp mem promote yet; update snpd (runbook §2)", and writes nothing
+  anywhere else.
+
+Arguments:
+  --file <id>=<path> and --expect-rev <id>=<rev|new>: as on snp mem put. Every
+  --file needs an --expect-rev for the same id, and each id appears once.
+  --delete <id>: delete one document instead. It takes exactly one --expect-rev
+  <rev>: 40 lowercase hex characters, as snp mem get --rev-only prints. new and
+  <id>=<rev> are not accepted, and --file is not allowed with it.
+  --reason <text>: recorded on the commit as the Snp-Reason trailer, as on snp
+  mem put.
+  snp checks every id before it sends anything, and exits 5 (INVALID) unless:
+  - it is not empty
+  - it is at most 512 bytes
+  - it is UTF-8
+  - it does not start with /
+  - it does not contain ..
+  - it has no control character
+  - it has no empty or . segment (no // and no /./)
+  - it has no .git segment, in any case (.GIT too)
+  - it is not _search, _commit or _promote (a nested x/_search is fine)
+
+Flags:
+  --delete <id>
+      <id>: delete the document
+  --expect-rev <id>=<rev|new> (repeatable)
+      <id>=<rev|new>, or <rev> with --delete
+  --file <id>=<path> (repeatable)
+      <id>=<path>: write the local file <path> as document <id>
+  --md
+      print markdown
+  --reason string
+      why, recorded as Snp-Reason
+
+Output:
+  - Default: snpd's JSON on one line,
+    {"commit","parent","revs","replayed","overwrote"}. commit is the new commit
+    and parent the one before it. revs maps each id to its new rev. overwrote
+    maps each id to the rev it replaced, or null when the document is new.
+    replayed is true when this request had already landed, so nothing new was
+    written.
+  - --md: "Wrote commit <commit> on top of <parent>." (or, when replayed, "This
+    write had already landed as commit <commit>; nothing new was written."),
+    then one "- <id>: rev <rev> (was <old rev>)" line per id, with "(new
+    document)" in place of "(was …)" for a new one.
+  After the write, snp moves your projection, if you have one, to the new
+  commit. If that fails, stderr gets "snp: PROJECTION_STALE: …" and snp still
+  exits 0, because the write landed; run snp pull.
+  On an error, stderr gets one line, snp: <CODE>: <message>, and stdout gets
+  snpd's error JSON when snpd sent one.
+  On a delete, deleted lists the deleted ids, and overwrote maps each one to the
+  rev it had. With --md, each deleted id is one line, "- <id>: deleted (was
+  <rev>)".
+
+Errors and exit codes:
+  usage error (exit 2)
+      An unknown flag, a bad flag value, an argument besides the flags, neither
+      --file nor --delete, --file together with --delete, a --file or
+      --expect-rev without =, an id given twice, a --file without its
+      --expect-rev or the reverse, or with --delete an --expect-rev that is not
+      exactly one 40-hex rev. snp sent nothing; stderr says which, so fix the
+      command and run it again.
+  CONFLICT (exit 3)
+      A document's rev is not the one you passed: it changed since you read it,
+      it exists and you passed new, or it does not exist and you passed a rev.
+      Nothing was written. Read it again with snp mem get, merge, and write with
+      the current rev.
+  NOT_FOUND (exit 4)
+      With --delete, there is no document at that id; check it with snp mem
+      list. Or this snpd does not support snp mem promote yet (stderr says so;
+      update snpd, runbook section 2). Nothing was written.
+  INVALID (exit 5)
+      An id is outside team and org memory, or is not spelled exactly, or has a
+      dot segment or is an instruction file; a --file is not readable UTF-8; the
+      commit is over 50 documents or the request over 1 MiB; or SNP_ORG is
+      missing, or SNP_URL is not an http or https URL with a host. Nothing was
+      written; stderr says which, so fix it and run it again.
+  UNAUTHENTICATED (exit 6)
+      SNP_TOKEN is malformed, unknown, revoked or expired, so snpd refused it.
+      Ask your admin for a new token. When SNP_TOKEN is not set, snp sent none:
+      set it, or add the snpd network secret to the cloud environment.
+  FORBIDDEN (exit 7)
+      SNP_TOKEN was issued for another org than SNP_ORG. Set SNP_ORG to the
+      token's org, or use a token issued for this one.
+  INSUFFICIENT_SCOPE (exit 7)
+      The token lacks the promote scope or the mem scope: ask your Sinopia admin
+      for snpd admin token set-scopes --id <id> --scopes mem,promote. Or the id
+      is reserved for people and admins, as a top .snp/ folder, or a MEMORY.md
+      or memory/ folder nested outside the zone, and no scope opens it. Nothing
+      was written.
+  DIRTY_PROJECTION (exit 9)
+      Your projection (~/.snp/projection/<org>) has local changes, so snp sent
+      nothing. The message lists them. Copy out anything you want to keep,
+      delete the projection with the command in the message, run snp pull, then
+      write again.
+  TRANSPORT (exit 10)
+      No answer from snpd, or an answer from something else, such as a proxy,
+      after 2 retries, so the write may have landed. Run snp mem get on each id
+      to check before you write again.
+  BUSY (exit 11)
+      Another write held the org's lock too long, or the write hit snpd's
+      deadline, after 2 retries. Nothing changed; run it again in a few seconds.
+  CLIENT_TOO_OLD (exit 12)
+      This snp is too old: snpd accepts only a newer one. Install the version
+      the message names, then run it again.
+  REQUEST_ID_REUSED (exit 13)
+      A different write already used this write's request id on snpd. snp makes
+      a new id on each run, so run the command again.
+  LIMIT (exit 14)
+      The token went over its request rate, or this session reached its cap on
+      writes. Nothing was written. The message says which: wait and run it
+      again, or for the session cap, check for a loop before you set a new
+      SNP_SESSION.
+  INTERNAL (exit 1)
+      The request failed inside snpd in a way it does not expect, after 2
+      retries. Run snp mem get on each id to check whether the write landed
+      before you run it again; if it fails again, send the message to your
+      admin.
+
+Environment:
+  SNP_URL: snpd's base URL, such as https://host:8484. A url= line in
+  ~/.snp/config works too, and SNP_URL wins over it. With neither, snp uses
+  https://snp.tesselabs.com.
+  SNP_ORG: your org. Required; an org= line in ~/.snp/config works too, and
+  SNP_ORG wins over it.
+  SNP_TOKEN: your token, read only from the environment, never from argv or a
+  file. Leave it unset in a cloud session whose network secret adds it; snp then
+  sends no token of its own.
+  SNP_SESSION, or else CLAUDE_CODE_REMOTE_SESSION_ID, or else
+  CLAUDE_CODE_SESSION_ID: optional. A claude.ai cloud session sets the second,
+  which stays the same across /clear and worker restarts. snp sends the first
+  one set with every request, and a write records it on the commit as the
+  Snp-Session trailer; a write without a valid one is recorded as undeclared.
+  When SNP_ORG is missing, or SNP_URL is not an http or https URL with a host,
+  snp exits 5 (INVALID) and sends nothing.
+
+Examples:
+  # Promote a team note that must not exist yet:
+  snp mem promote --file teams/core/conventions.md=./conventions.md \
+    --expect-rev teams/core/conventions.md=new --reason "team conventions"
+  # Delete a promoted document you have just read:
+  rev=$(snp mem get teams/core/old.md --rev-only)
+  snp mem promote --delete teams/core/old.md --expect-rev "$rev"
+  # A token with mem but not promote is refused: exit 7, and stderr says
+  #   snp: INSUFFICIENT_SCOPE: …
+  snp mem promote --file teams/core/conventions.md=./conventions.md \
+    --expect-rev teams/core/conventions.md=new
 ```
 
 ## snp mem list
@@ -2150,7 +2335,7 @@ Arguments:
 
 Output:
   One line of JSON on stdout, {"id", "org", "scopes", "expires", "schema",
-  "machine"}, as snpd sent it.
+  "machine", "promote"}, as snpd sent it.
   On an error, stderr gets one line, snp: <CODE>: <message>, and stdout gets
   snpd's error JSON when snpd sent one.
 
@@ -2221,9 +2406,15 @@ Description:
   notes. The first line says which. A home with notes prints its index.md alone
   when it has one; otherwise it prints the list of notes, then the newest notes,
   and stops at 20000 bytes.
-  snp home reads your own machine's home only, and it does not pull: run snp
-  pull first when you want the latest. It exits 0 in every state, so a hook can
-  run it without guarding.
+  After the machine home, snp home prints team memory: every team under teams/
+  in the same projection, teams in alphabetical order. The machine home and team
+  memory share the 20000-byte cap, the machine home first, so teams get what it
+  leaves. Team memory prints whether or not a machine is configured or snpd is
+  reachable, but it needs a projection: with no client config it prints team
+  memory: no projection.
+  snp home reads your own machine's home and the teams only, and it does not
+  pull: run snp pull first when you want the latest. It exits 0 in every state,
+  so a hook can run it without guarding.
 
 Arguments:
   None.
@@ -2243,6 +2434,20 @@ Output:
   one line per note (machines/<machine>/<file>, ending in " (unreadable)" for a
   file that cannot be read), then the newest notes, each starting with ==
   machines/<machine>/<file> ==, until 20000 bytes are read.
+  Then one team memory line:
+  team memory: none
+  team memory: no projection
+  team memory: teams/ is unreadable
+  team memory: skipped (the machine home used the 20000-byte cap; <t> teams not
+  read)
+  team memory: teams/ (<t> teams, <n> notes, <bytes> bytes read, truncated: <yes
+  or no>)
+  Each team prints like a home: its index.md alone when it has one, otherwise
+  one line per note (teams/<team>/<file>, ending in " (unreadable)" for a file
+  that cannot be read) and the newest notes, each starting with ==
+  teams/<team>/<file> ==, until the shared cap is reached. When the cap is
+  reached before every team is read, a last line names the rest:
+  teams not read: <a>, <b>
 
 Errors and exit codes:
   usage error (exit 2)

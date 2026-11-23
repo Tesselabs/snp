@@ -7,6 +7,7 @@
 | Skill | What it does |
 |---|---|
 | `snp-think` | Writes a design doc for an idea, before any code. |
+| `snp-shape` | Iterates the Shape of a feature that `snp-think` wrote, one step per run: says where it stands, opens it, adds a source, and proposes options. |
 | `snp-plan` | Turns a design doc into a roadmap of milestones you can release one at a time. |
 | `snp-spec` | Writes an executable spec for one roadmap milestone. `--fix` applies a review's accepted blockers to that spec, and `--reconcile-plan` moves the milestone from scoped to planned. |
 | `snp-review` | Runs a panel of expert agents over a spec, and records its findings and decisions. |

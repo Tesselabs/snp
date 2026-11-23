@@ -3480,3 +3480,64 @@ Examples:
   # usage error (exit 2):
   snp review-cap converge --question q.txt
 ```
+
+## snp shape lint
+
+```text
+Usage:
+  snp shape lint <absolute path>
+
+Description:
+  Lint one Shape document, a local Markdown file, and print a verdict. The path
+  must be absolute and name a regular file of at most 1 MiB (a symlink to one is
+  read).
+  The lint runs in layers, in order. Today there is one, frontmatter: the file
+  starts with a "---" block holding type: shape, a status of draft, shaping or
+  ready-for-plan, and a chosen value when the status is ready-for-plan. Once a
+  layer fails, every later layer is reported as skipped and does not run.
+  The stable contract is the exit code plus the final result: line. The layer
+  lines are matched by name, and new layers may appear between existing ones, so
+  never match them by position or count.
+  snp shape lint reads only the file. It makes no network call, runs no command
+  and writes nothing.
+
+Arguments:
+  <absolute path>: the Shape document to lint. Exactly one, and no flags.
+
+Output:
+  Lines on stdout, in this order:
+  layer <name>: pass|fail|absent
+  layer <name>: skipped
+  error: <key>: <message>
+  result: pass|fail
+  There is one layer line per layer, in run order. A layer is skipped when an
+  earlier one failed. An error line follows for each finding, and the last line
+  is the verdict. The result is pass exactly when no layer is fail; a layer that
+  is absent or skipped is not a failure.
+  Exit 0 means result: pass and exit 1 means result: fail. An exit other than 0
+  or 1 means the lint did not run, so it is never a verdict.
+
+Errors and exit codes:
+  usage error (exit 2)
+      No path, more than one path, any flag (-- included), a path that is not
+      absolute, or a file snp cannot read, that is not a regular file, or that
+      is over 1 MiB. The lint did not run: stdout gets nothing, and stderr gets
+      snp shape: <message> followed by the usage in parentheses. Fix the command
+      and run it again.
+
+Environment:
+  None. snp shape lint reads no SNP_* variables and never calls snpd.
+
+Examples:
+  # A failing document prints, and exits 1:
+  #   layer frontmatter: fail
+  #   error: chosen: required when status is ready-for-plan
+  #   result: fail
+  snp shape lint /work/shapes/billing.md
+  # A passing one prints, and exits 0:
+  #   layer frontmatter: pass
+  #   result: pass
+  snp shape lint /work/shapes/auth.md
+  # A relative path is a usage error (exit 2), and the lint did not run:
+  snp shape lint auth.md
+```

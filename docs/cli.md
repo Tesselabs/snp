@@ -3491,13 +3491,20 @@ Description:
   Lint one Shape document, a local Markdown file, and print a verdict. The path
   must be absolute and name a regular file of at most 1 MiB (a symlink to one is
   read).
-  The lint runs in layers, in order. Today there is one, frontmatter: the file
-  starts with a "---" block holding type: shape, a status of draft, shaping or
-  ready-for-plan, and a chosen value when the status is ready-for-plan. An
-  optional shaping_posture key, at any status, must be exactly well-defined or
-  discovery. An appetite key must be exactly S, M, L or XL when set, at any
-  status, and is required when the status is ready-for-plan. Once a layer fails,
-  every later layer is reported as skipped and does not run.
+  The lint runs in layers, in order: frontmatter, then body.
+  The frontmatter layer: the file starts with a "---" block holding type: shape,
+  a status of draft, shaping or ready-for-plan, and a chosen value when the
+  status is ready-for-plan. An optional shaping_posture key, at any status, must
+  be exactly well-defined or discovery. An appetite key must be exactly S, M, L
+  or XL when set, at any status, and is required when the status is
+  ready-for-plan.
+  The body layer: when the status is ready-for-plan, the body must have a ##
+  Hypothesis and a ## Verification section, each with at least one non-blank
+  line. At any status, either heading appearing more than once is refused. A
+  heading counts only as a line that is exactly ## Hypothesis (or ##
+  Verification) outside a fenced block, and a section ends at the next ##
+  heading outside a fence.
+  Once a layer fails, every later layer is reported as skipped and does not run.
   The stable contract is the exit code plus the final result: line. The layer
   lines are matched by name, and new layers may appear between existing ones, so
   never match them by position or count.
@@ -3533,12 +3540,15 @@ Environment:
 
 Examples:
   # A failing document prints, and exits 1:
-  #   layer frontmatter: fail
-  #   error: chosen: required when status is ready-for-plan
+  #   layer frontmatter: pass
+  #   layer body: fail
+  #   error: ## Hypothesis: required when status is ready-for-plan; write what
+  #     the feature is expected to change
   #   result: fail
   snp shape lint /work/shapes/billing.md
   # A passing one prints, and exits 0:
   #   layer frontmatter: pass
+  #   layer body: pass
   #   result: pass
   snp shape lint /work/shapes/auth.md
   # A relative path is a usage error (exit 2), and the lint did not run:

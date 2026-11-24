@@ -3493,8 +3493,11 @@ Description:
   read).
   The lint runs in layers, in order. Today there is one, frontmatter: the file
   starts with a "---" block holding type: shape, a status of draft, shaping or
-  ready-for-plan, and a chosen value when the status is ready-for-plan. Once a
-  layer fails, every later layer is reported as skipped and does not run.
+  ready-for-plan, and a chosen value when the status is ready-for-plan. An
+  optional shaping_posture key, at any status, must be exactly well-defined or
+  discovery. An appetite key must be exactly S, M, L or XL when set, at any
+  status, and is required when the status is ready-for-plan. Once a layer fails,
+  every later layer is reported as skipped and does not run.
   The stable contract is the exit code plus the final result: line. The layer
   lines are matched by name, and new layers may appear between existing ones, so
   never match them by position or count.
@@ -3540,4 +3543,82 @@ Examples:
   snp shape lint /work/shapes/auth.md
   # A relative path is a usage error (exit 2), and the lint did not run:
   snp shape lint auth.md
+```
+
+## snp shape usage
+
+```text
+Usage:
+  snp shape usage <absolute path>
+
+Description:
+  Print a Shape's appetite next to the build tokens measured for the milestones
+  of its roadmap. The report is advisory: it never fails a Shape.
+  The appetite is the Shape's appetite key, one of four sizes, each a budget of
+  main-transcript tokens: S 40000000, M 80000000, L 120000000 and XL 400000000.
+  The sizes are calibrated on one Shape so far, so an over on an early Shape is
+  calibration evidence, not a failure.
+  The path names <root>/projects/<slug>/<iniciativa>/Shape - <title>.md in a
+  projection. It must be absolute and name a regular file of at most 1 MiB (a
+  symlink to one is read). The milestones are the rows of the one Roadmap - *.md
+  beside the Shape. For each one, snp reads the files metrics/<MID>/issue-*.yaml
+  in the same folder, which /snp-build writes after each run.
+  Each file holds two figures. total_main, the main-transcript tokens of the run
+  with cache reads included, is summed and compared with the budget. total,
+  which adds the subagents, is summed into all= and only shown.
+  The figure is a lower bound: only saved /snp-build runs are counted. A
+  milestone with no good file is unmeasured, never 0. within so far means the
+  sum is within the budget while some milestones are still unmeasured; a sum
+  past the budget is over, whatever is unmeasured.
+  snp shape usage reads the local projection, so run snp pull first. It makes no
+  network call, runs no command and writes nothing.
+
+Arguments:
+  <absolute path>: the Shape document. Exactly one, and no flags.
+
+Output:
+  Lines on stdout, in this order:
+  appetite: <S|M|L|XL> <budget> | appetite: unset
+  roadmap: <file name> | roadmap: none
+  skipped heading: <quoted line>
+  milestone <MID>: <sum> all=<all> files=<n>[ bad=<b>][ ignored=<i>][ kind=<k>]
+  milestone <MID>: unmeasured[ bad=<b>][ ignored=<i>][ kind=<k>]
+  orphan <MID>: files=<n> | orphan <MID>: unreadable | orphan: unreadable
+  coverage: <what is counted>
+  result: <sum> of <budget> (<pct>%) <verdict> measured=<k>/<n> all=<all>
+  result: <sum> measured=<k>/<n> all=<all> appetite unset
+  result: unmeasured measured=0/<n>
+  There is one milestone line per roadmap row, in roadmap order. kind= is spike
+  or invalid, from the row's Kind line; a spike is summed like any row. bad=
+  counts files snp could not read as totals and ignored= counts entries with
+  another name; neither is summed. An orphan is a metrics folder with no roadmap
+  row; it is never summed. <verdict> is over when the sum is past the budget,
+  else within when every milestone is measured, else within so far.
+  The stable contract is the exit code plus the final result: line. The other
+  lines are matched by prefix, and new kinds of lines may appear before result:,
+  so never match them by position or count.
+  Exit 0 means a report was printed, whatever it says.
+
+Errors and exit codes:
+  usage error (exit 2)
+      Exit 2 means the report did not run: no path, more than one path, any flag
+      (-- included), a path that is not absolute or not a Shape in a projection,
+      a file snp cannot read, that is not a regular file or that is over 1 MiB,
+      a Shape with no valid frontmatter or appetite (run snp shape lint), more
+      than one roadmap, or a roadmap or folder snp cannot read. stdout gets
+      nothing, and stderr gets snp shape: <message> followed by the usage in
+      parentheses. It is never a report. Fix the command or the files and run it
+      again.
+
+Environment:
+  None. snp shape usage reads no SNP_* variables and never calls snpd.
+
+Examples:
+  # The snp-shape Shape after M4 prints this result: line last, and exits 0:
+  #   result: 329446760 of 400000000 (82%) within so far
+  #     measured=4/9 all=452417818
+  D=/home/ana/.snp/projection/acme/projects/sinopia/snp-shape
+  snp shape usage "$D/Shape - Think three lanes.md"
+  # A path outside a projection is a usage error (exit 2):
+  snp shape usage /work/shapes/auth.md
 ```

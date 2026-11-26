@@ -3491,7 +3491,8 @@ Description:
   Lint one Shape document, a local Markdown file, and print a verdict. The path
   must be absolute and name a regular file of at most 1 MiB (a symlink to one is
   read).
-  The lint runs in layers, in order: frontmatter, then body.
+  The lint runs in layers, in order: frontmatter, body, breadboard-schema,
+  derived, breadboard, interaction.
   The frontmatter layer: the file starts with a "---" block holding type: shape,
   a status of draft, shaping or ready-for-plan, and a chosen value when the
   status is ready-for-plan. An optional shaping_posture key, at any status, must
@@ -3504,12 +3505,41 @@ Description:
   heading counts only as a line that is exactly ## Hypothesis (or ##
   Verification) outside a fenced block, and a section ends at the next ##
   heading outside a fence.
+  The breadboard-schema layer: the body may hold at most one yaml snp-shape
+  block. It opens on a line outside any fence that is exactly ```yaml snp-shape
+  (trailing spaces and tabs are ignored) and closes at the next line that starts
+  with three backticks, which must be exactly ```. The block is refused when it
+  appears twice, is not closed, is empty, or is over 256 KiB between the fence
+  lines. It is also refused when it holds a control or format character, a
+  byte-order mark, a bare carriage return, U+0085, U+2028, U+2029 or invalid
+  UTF-8. The block must be one YAML document: a --- or ... line, or a line
+  starting with %, is refused, and a YAML error is reported with its line in the
+  file. The block is then read under a strict profile: no anchors, aliases,
+  merge keys or tags, no duplicate or unknown keys, at most 8 levels of nesting,
+  20000 nodes, 1000 items per list and 200 bytes per id, name, label, actor or
+  emits (4096 for other text), and no control, format or backtick-fence
+  characters in text. Every field must have its schema type, so a date, number,
+  bool or null where text is wanted is refused until it is quoted; required
+  fields, enums and id patterns are checked, and a place may not set blocking
+  next to layer. The layer is absent when the body has no block.
+  The derived layer: it checks the generated ## Derived section. It is absent
+  when the body has neither a block nor a ## Derived heading. Once there is a
+  block, the section is required when the status is ready-for-plan. A ## Derived
+  heading with no block is refused, and so is the heading appearing twice. At
+  every status the section must equal what snp shape render prints for the
+  block; a mismatch is named from the section's marker line: no marker, a
+  changed block, another render format version, or a hand edit.
+  The breadboard and interaction layers check the rules of the block. Each is
+  absent when the body has no block, and the interaction layer is also absent
+  when the block uses none of layer, layer_kind, usage, chrome_budget, affords,
+  reversible, irreversible.
   Once a layer fails, every later layer is reported as skipped and does not run.
   The stable contract is the exit code plus the final result: line. The layer
   lines are matched by name, and new layers may appear between existing ones, so
   never match them by position or count.
   snp shape lint reads only the file. It makes no network call, runs no command
-  and writes nothing.
+  and writes nothing. To print a Shape's chosen option as Gherkin scenarios, run
+  snp shape export gherkin.
 
 Arguments:
   <absolute path>: the Shape document to lint. Exactly one, and no flags.
@@ -3518,12 +3548,15 @@ Output:
   Lines on stdout, in this order:
   layer <name>: pass|fail|absent
   layer <name>: skipped
-  error: <key>: <message>
+  error: <key>: <message>[ (line N)]
+  note: <key>: <message> (line N)
   result: pass|fail
   There is one layer line per layer, in run order. A layer is skipped when an
-  earlier one failed. An error line follows for each finding, and the last line
-  is the verdict. The result is pass exactly when no layer is fail; a layer that
-  is absent or skipped is not a failure.
+  earlier one failed. An error line follows for each finding, in layer order,
+  and (line N) is the file line when there is one. Then come the note lines, in
+  layer order. A note is advice: it never fails a layer. The last line is the
+  verdict. The result is pass exactly when no layer is fail; a layer that is
+  absent or skipped is not a failure.
   Exit 0 means result: pass and exit 1 means result: fail. An exit other than 0
   or 1 means the lint did not run, so it is never a verdict.
 
@@ -3542,6 +3575,10 @@ Examples:
   # A failing document prints, and exits 1:
   #   layer frontmatter: pass
   #   layer body: fail
+  #   layer breadboard-schema: skipped
+  #   layer derived: skipped
+  #   layer breadboard: skipped
+  #   layer interaction: skipped
   #   error: ## Hypothesis: required when status is ready-for-plan; write what
   #     the feature is expected to change
   #   result: fail
@@ -3549,6 +3586,10 @@ Examples:
   # A passing one prints, and exits 0:
   #   layer frontmatter: pass
   #   layer body: pass
+  #   layer breadboard-schema: absent
+  #   layer derived: absent
+  #   layer breadboard: absent
+  #   layer interaction: absent
   #   result: pass
   snp shape lint /work/shapes/auth.md
   # A relative path is a usage error (exit 2), and the lint did not run:
@@ -3631,4 +3672,127 @@ Examples:
   snp shape usage "$D/Shape - Think three lanes.md"
   # A path outside a projection is a usage error (exit 2):
   snp shape usage /work/shapes/auth.md
+```
+
+## snp shape render
+
+```text
+Usage:
+  snp shape render <absolute path>
+
+Description:
+  Print the ## Derived section of one Shape document, a local Markdown file,
+  generated from its snp-shape block. The path must be absolute and name a
+  regular file of at most 1 MiB (a symlink to one is read).
+  snp shape render reads only the snp-shape block, never the frontmatter. It
+  prints the ## Derived heading and the marker line with the block's hash, then
+  the mermaid breadboard, one statechart per place with ui_states and the
+  stories x options matrix. Labels are encoded: letters, digits, space and
+  .,;_-/+=? are kept, and any other character is written #<decimal>;.
+  The block needs only breadboard-schema to pass: run snp shape lint to see the
+  other layers. The command makes no network call, runs no command and writes
+  nothing, so put its output in the document by hand. To print the chosen option
+  as Gherkin scenarios, run snp shape export gherkin.
+
+Arguments:
+  <absolute path>: the Shape document to render. Exactly one, and no flags.
+
+Output:
+  The ## Derived section on stdout, ending in one newline: the ## Derived
+  heading and the marker line with the block's hash, then the mermaid
+  breadboard, the statecharts and the stories x options matrix.
+  Exit 0 means the section was printed.
+
+Errors and exit codes:
+  refused (exit 1)
+      The file has no snp-shape block (snp shape render: <path> has no snp-shape
+      block), or the block does not pass breadboard-schema (run snp shape lint
+      <path>), or snp hit an internal error (snp shape render: internal error;
+      please report it). stdout gets nothing.
+  usage error (exit 2)
+      No path, more than one path, any flag (-- included), a path that is not
+      absolute, or a file snp cannot read, that is not a regular file, or that
+      is over 1 MiB. stdout gets nothing, and stderr gets snp shape: <message>
+      followed by the usage in parentheses. Fix the command and run it again.
+
+Environment:
+  None. snp shape render reads no SNP_* variables and never calls snpd.
+
+Examples:
+  # Print the section a Shape should hold, and exit 0:
+  snp shape render /work/shapes/requests.md
+  # A hand-edited ## Derived section is wrong: regenerate it.
+  # A relative path is a usage error (exit 2):
+  snp shape render requests.md
+```
+
+## snp shape export
+
+```text
+Usage:
+  snp shape export gherkin|a2ui|html <absolute path>
+
+Description:
+  Print one Shape document, a local Markdown file, in one of three formats:
+  gherkin and html print the chosen option, and a2ui prints the base and every
+  option. The path must be absolute and name a regular file of at most 1 MiB (a
+  symlink to one is read). The format comes first, then the path.
+  gherkin: one Feature, a scenario per story trace, then one per anti-story.
+  a2ui: one A2UI v1.0 createSurface JSON line per place, for the base and then
+  each option, so every option can be drawn side by side.
+  html: one self-contained page of the chosen option, or of the base when the
+  block has no options or no option is chosen: the places on the left, the
+  traces on the right, and a hover on a trace step that lights the affordance
+  and the place it leads to. The page loads nothing and is pinned by a
+  Content-Security-Policy of hashes.
+  The export is refused unless the document has an snp-shape block that passes
+  breadboard-schema, for gherkin a chosen option when the block has options
+  (html and a2ui do not need one), a chosen option, when set, that is one option
+  id A-Z and an option of the block when the block has options (gherkin, html
+  and a2ui all refuse one that is not), and a model (the chosen option's, or the
+  base) that passes the reference rule: every id a trace step, affordance,
+  action or transition names exists, and a UI component is in the wireframe
+  catalog. a2ui checks the base and every option, and only that a UI
+  affordance's place exists and its component is in the wireframe catalog. A
+  refusal names the first finding and prints nothing on stdout.
+  snp shape export reads only the file. It makes no network call, runs no
+  command and writes nothing, so put its output where you want it by hand.
+
+Arguments:
+  gherkin|a2ui|html <absolute path>: the format, then the Shape document to
+  export. Exactly one of each, and no flags.
+
+Output:
+  The Gherkin text, the A2UI lines or the HTML page on stdout, built in full
+  before it is written.
+  Exit 0 means the text was printed.
+
+Errors and exit codes:
+  refused (exit 1)
+      The document has no snp-shape block, the block does not pass
+      breadboard-schema (run snp shape lint <path>), for gherkin, there is no
+      chosen option (when the block has options), a chosen option that is not
+      one option id A-Z or not an option of the block, the model fails a rule,
+      or snp hit an internal error (snp shape export: internal error; please
+      report it). stdout gets nothing, and stderr gets one line saying why.
+  usage error (exit 2)
+      No format, a format other than gherkin, a2ui or html, no path, more than
+      one path, any flag (-- included), a path that is not absolute, or a file
+      snp cannot read, that is not a regular file, or that is over 1 MiB. stdout
+      gets nothing, and stderr gets snp shape: <message> followed by the usage
+      in parentheses. Fix the command and run it again.
+
+Environment:
+  None. snp shape export reads no SNP_* variables and never calls snpd.
+
+Examples:
+  # Print the chosen option as Gherkin, and exit 0:
+  snp shape export gherkin /work/shapes/requests.md
+  # Print every place of the base and each option as A2UI, and exit 0:
+  snp shape export a2ui /work/shapes/requests.md
+  # Write the chosen option as one HTML page, and exit 0:
+  snp shape export html /work/shapes/requests.md > requests.html
+  # gherkin refuses no chosen option (exit 1); html renders the base.
+  # A relative path is a usage error (exit 2):
+  snp shape export gherkin requests.md
 ```

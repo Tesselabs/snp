@@ -3492,7 +3492,16 @@ Description:
   must be absolute and name a regular file of at most 1 MiB (a symlink to one is
   read).
   The lint runs in layers, in order: frontmatter, body, breadboard-schema,
-  derived, breadboard, interaction.
+  derived, glossary, model, breadboard, interaction.
+  The lint also reads the project's glossary note, ontology.md, in the directory
+  two levels above the Shape: for <root>/projects/<slug>/<iniciativa>/Shape -
+  <title>.md that is <root>/projects/<slug>/ontology.md, the parent of the
+  Shape's folder, with no symlink resolution of the path. ontology.md must be a
+  regular file, not a symlink, of at most 1 MiB, and unchanged while it is read;
+  the Shape argument and the directories above it may be symlinks. Every Shape
+  lint prints one note: ontology: line: read <path>, no ontology.md at <path>,
+  or not read <path>. An issue found in ontology.md ends in (ontology.md line N)
+  when it has a line; an issue in the Shape ends in (line N) when it has one.
   The frontmatter layer: the file starts with a "---" block holding type: shape,
   a status of draft, shaping or ready-for-plan, and a chosen value when the
   status is ready-for-plan. An optional shaping_posture key, at any status, must
@@ -3529,15 +3538,45 @@ Description:
   every status the section must equal what snp shape render prints for the
   block; a mismatch is named from the section's marker line: no marker, a
   changed block, another render format version, or a hand edit.
+  The glossary layer is absent when the body has no block, and also, while the
+  status is draft or shaping, when there is no ontology.md: a missing
+  ontology.md fails nothing while the status is draft or shaping; at
+  ready-for-plan it fails with error: ontology: required when status is
+  ready-for-plan. It fails with an error: ontology: line when ontology.md was
+  refused (the directory two levels above the Shape is /, so there is no project
+  directory above it; it is a symlink or not a regular file, it is over 1 MiB,
+  it changed while it was read, or it could not be read), at every status.
+  Otherwise it runs the glossary's own checks (the yaml snp-ontology block with
+  its glossary entries), then membership: every state.entities key,
+  model.objects key, mutates entity and relations[].to must be a glossary id, an
+  exact match. It then scans for avoid words, as whole words and
+  case-insensitively, at most 50 hits shown, on the base and on the flattened
+  chosen option.
+  The model layer is absent when there is no block, or, while the status is
+  draft or shaping, when the block has neither model nor concepts. Otherwise it
+  checks the CTA rules (every command or query action has an object and a who
+  through a CTA, no matrix row is empty, no action sits in two objects) and the
+  concept rules. When the status is ready-for-plan the block must have a model:
+  without one the layer fails with error: model: required when status is
+  ready-for-plan, at the fence line.
+  The glossary and model layers are soft: a fail fails the result (exit 1) but
+  skips no later layer, and neither one's result affects another layer.
+  A note whose frontmatter has type: ontology is linted on its own, without
+  loading another ontology.md. It runs exactly two layers: frontmatter, which
+  requires type: ontology, and glossary, with (line N) suffixes.
   The breadboard and interaction layers check the rules of the block. Each is
   absent when the body has no block, and the interaction layer is also absent
   when the block uses none of layer, layer_kind, usage, chrome_budget, affords,
   reversible, irreversible.
-  Once a layer fails, every later layer is reported as skipped and does not run.
+  Once frontmatter, body, breadboard-schema or derived fails, every later layer
+  is reported as skipped and does not run; once breadboard fails, interaction is
+  skipped. A glossary or model fail skips nothing.
   The stable contract is the exit code plus the final result: line. The layer
   lines are matched by name, and new layers may appear between existing ones, so
   never match them by position or count.
-  snp shape lint reads only the file. It makes no network call, runs no command
+  snp shape lint reads the file and the ontology.md two directories above it;
+  ontology.md itself is never read through a symlink, while the Shape argument
+  and the directories above it may be. It makes no network call, runs no command
   and writes nothing. To print a Shape's chosen option as Gherkin scenarios, run
   snp shape export gherkin.
 
@@ -3548,15 +3587,17 @@ Output:
   Lines on stdout, in this order:
   layer <name>: pass|fail|absent
   layer <name>: skipped
-  error: <key>: <message>[ (line N)]
-  note: <key>: <message> (line N)
+  error: <key>: <message>[ (line N)| (ontology.md line N)]
+  note: <key>: <message>[ (line N)]
   result: pass|fail
-  There is one layer line per layer, in run order. A layer is skipped when an
-  earlier one failed. An error line follows for each finding, in layer order,
-  and (line N) is the file line when there is one. Then come the note lines, in
-  layer order. A note is advice: it never fails a layer. The last line is the
-  verdict. The result is pass exactly when no layer is fail; a layer that is
-  absent or skipped is not a failure.
+  There is one layer line per layer, in run order. The note: ontology: line is
+  always among the notes of a Shape lint. A layer is skipped when an earlier one
+  failed, except that a glossary or model fail skips nothing. An error line
+  follows for each finding, in layer order, and (line N) is the file line when
+  there is one, or (ontology.md line N) for an issue in ontology.md. Then come
+  the note lines, in layer order. A note is advice: it never fails a layer. The
+  last line is the verdict. The result is pass exactly when no layer is fail; a
+  layer that is absent or skipped is not a failure.
   Exit 0 means result: pass and exit 1 means result: fail. An exit other than 0
   or 1 means the lint did not run, so it is never a verdict.
 
@@ -3566,7 +3607,8 @@ Errors and exit codes:
       absolute, or a file snp cannot read, that is not a regular file, or that
       is over 1 MiB. The lint did not run: stdout gets nothing, and stderr gets
       snp shape: <message> followed by the usage in parentheses. Fix the command
-      and run it again.
+      and run it again. A problem with ontology.md is never a usage error: at
+      most it fails the glossary layer (exit 1).
 
 Environment:
   None. snp shape lint reads no SNP_* variables and never calls snpd.
@@ -3577,10 +3619,13 @@ Examples:
   #   layer body: fail
   #   layer breadboard-schema: skipped
   #   layer derived: skipped
+  #   layer glossary: skipped
+  #   layer model: skipped
   #   layer breadboard: skipped
   #   layer interaction: skipped
   #   error: ## Hypothesis: required when status is ready-for-plan; write what
   #     the feature is expected to change
+  #   note: ontology: no ontology.md at /work/ontology.md
   #   result: fail
   snp shape lint /work/shapes/billing.md
   # A passing one prints, and exits 0:
@@ -3588,8 +3633,11 @@ Examples:
   #   layer body: pass
   #   layer breadboard-schema: absent
   #   layer derived: absent
+  #   layer glossary: absent
+  #   layer model: absent
   #   layer breadboard: absent
   #   layer interaction: absent
+  #   note: ontology: no ontology.md at /work/ontology.md
   #   result: pass
   snp shape lint /work/shapes/auth.md
   # A relative path is a usage error (exit 2), and the lint did not run:
